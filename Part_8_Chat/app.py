@@ -21,3 +21,4 @@ if prompt:
 
     with st.chat_message("bot"):
         st.write("I am a bot")
+ http://192.168.50.247:8501
