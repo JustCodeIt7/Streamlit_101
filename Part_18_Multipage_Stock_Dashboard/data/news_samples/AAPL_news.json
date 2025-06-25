@@ -1,0 +1,402 @@
+[
+  {
+    "date": "2025-06-25",
+    "headline": "Apple Inc. Faces Regulatory Challenges",
+    "source": "MarketWatch",
+    "sentiment_score": -0.236,
+    "confidence": 0.781,
+    "url": "https://example.com/news/17"
+  },
+  {
+    "date": "2025-06-25",
+    "headline": "Apple Inc. Stock Reaches New High",
+    "source": "CNBC",
+    "sentiment_score": 0.195,
+    "confidence": 0.929,
+    "url": "https://example.com/news/21"
+  },
+  {
+    "date": "2025-06-25",
+    "headline": "Apple Inc. Stock Reaches New High",
+    "source": "Bloomberg",
+    "sentiment_score": -0.095,
+    "confidence": 0.915,
+    "url": "https://example.com/news/25"
+  },
+  {
+    "date": "2025-06-24",
+    "headline": "Apple Inc. Faces Regulatory Challenges",
+    "source": "CNBC",
+    "sentiment_score": -0.309,
+    "confidence": 0.926,
+    "url": "https://example.com/news/36"
+  },
+  {
+    "date": "2025-06-23",
+    "headline": "Apple Inc. Partners with Major Technology Firm",
+    "source": "CNBC",
+    "sentiment_score": 0.056,
+    "confidence": 0.616,
+    "url": "https://example.com/news/0"
+  },
+  {
+    "date": "2025-06-23",
+    "headline": "Apple Inc. Faces Regulatory Challenges",
+    "source": "MarketWatch",
+    "sentiment_score": 0.138,
+    "confidence": 0.867,
+    "url": "https://example.com/news/7"
+  },
+  {
+    "date": "2025-06-23",
+    "headline": "Apple Inc. Partners with Major Technology Firm",
+    "source": "Reuters",
+    "sentiment_score": 0.266,
+    "confidence": 0.896,
+    "url": "https://example.com/news/43"
+  },
+  {
+    "date": "2025-06-22",
+    "headline": "Apple Inc. Reports Strong Quarterly Earnings",
+    "source": "Yahoo Finance",
+    "sentiment_score": 0.341,
+    "confidence": 0.83,
+    "url": "https://example.com/news/4"
+  },
+  {
+    "date": "2025-06-22",
+    "headline": "Apple Inc. CEO Discusses Future Strategy",
+    "source": "Reuters",
+    "sentiment_score": 0.452,
+    "confidence": 0.681,
+    "url": "https://example.com/news/28"
+  },
+  {
+    "date": "2025-06-22",
+    "headline": "Market Volatility Affects Apple Inc. Shares",
+    "source": "Reuters",
+    "sentiment_score": 0.381,
+    "confidence": 0.696,
+    "url": "https://example.com/news/29"
+  },
+  {
+    "date": "2025-06-21",
+    "headline": "Market Volatility Affects Apple Inc. Shares",
+    "source": "MarketWatch",
+    "sentiment_score": 0.342,
+    "confidence": 0.65,
+    "url": "https://example.com/news/11"
+  },
+  {
+    "date": "2025-06-21",
+    "headline": "Institutional Investors Increase Apple Inc. Holdings",
+    "source": "Yahoo Finance",
+    "sentiment_score": 0.108,
+    "confidence": 0.532,
+    "url": "https://example.com/news/30"
+  },
+  {
+    "date": "2025-06-19",
+    "headline": "Apple Inc. Partners with Major Technology Firm",
+    "source": "Bloomberg",
+    "sentiment_score": 0.554,
+    "confidence": 0.642,
+    "url": "https://example.com/news/12"
+  },
+  {
+    "date": "2025-06-18",
+    "headline": "Apple Inc. Announces New Product Launch",
+    "source": "CNBC",
+    "sentiment_score": 0.004,
+    "confidence": 0.67,
+    "url": "https://example.com/news/27"
+  },
+  {
+    "date": "2025-06-17",
+    "headline": "Industry Trends Favor Apple Inc.",
+    "source": "Bloomberg",
+    "sentiment_score": -0.281,
+    "confidence": 0.52,
+    "url": "https://example.com/news/6"
+  },
+  {
+    "date": "2025-06-17",
+    "headline": "Apple Inc. Stock Reaches New High",
+    "source": "Reuters",
+    "sentiment_score": -0.024,
+    "confidence": 0.942,
+    "url": "https://example.com/news/41"
+  },
+  {
+    "date": "2025-06-16",
+    "headline": "Apple Inc. Faces Regulatory Challenges",
+    "source": "Reuters",
+    "sentiment_score": -0.145,
+    "confidence": 0.629,
+    "url": "https://example.com/news/14"
+  },
+  {
+    "date": "2025-06-16",
+    "headline": "Market Volatility Affects Apple Inc. Shares",
+    "source": "Bloomberg",
+    "sentiment_score": -0.087,
+    "confidence": 0.962,
+    "url": "https://example.com/news/23"
+  },
+  {
+    "date": "2025-06-16",
+    "headline": "Apple Inc. Announces New Product Launch",
+    "source": "MarketWatch",
+    "sentiment_score": -0.043,
+    "confidence": 0.683,
+    "url": "https://example.com/news/26"
+  },
+  {
+    "date": "2025-06-16",
+    "headline": "Market Volatility Affects Apple Inc. Shares",
+    "source": "Reuters",
+    "sentiment_score": 0.172,
+    "confidence": 0.843,
+    "url": "https://example.com/news/45"
+  },
+  {
+    "date": "2025-06-15",
+    "headline": "Analysts Upgrade Apple Inc. Stock Rating",
+    "source": "Bloomberg",
+    "sentiment_score": 0.617,
+    "confidence": 0.786,
+    "url": "https://example.com/news/44"
+  },
+  {
+    "date": "2025-06-15",
+    "headline": "Apple Inc. CEO Discusses Future Strategy",
+    "source": "Reuters",
+    "sentiment_score": 0.013,
+    "confidence": 0.707,
+    "url": "https://example.com/news/47"
+  },
+  {
+    "date": "2025-06-14",
+    "headline": "Market Volatility Affects Apple Inc. Shares",
+    "source": "CNBC",
+    "sentiment_score": -0.271,
+    "confidence": 0.547,
+    "url": "https://example.com/news/22"
+  },
+  {
+    "date": "2025-06-13",
+    "headline": "Market Volatility Affects Apple Inc. Shares",
+    "source": "CNBC",
+    "sentiment_score": -0.262,
+    "confidence": 0.811,
+    "url": "https://example.com/news/10"
+  },
+  {
+    "date": "2025-06-13",
+    "headline": "Industry Trends Favor Apple Inc.",
+    "source": "MarketWatch",
+    "sentiment_score": 0.012,
+    "confidence": 0.559,
+    "url": "https://example.com/news/18"
+  },
+  {
+    "date": "2025-06-11",
+    "headline": "Apple Inc. Faces Regulatory Challenges",
+    "source": "CNBC",
+    "sentiment_score": 0.307,
+    "confidence": 0.655,
+    "url": "https://example.com/news/49"
+  },
+  {
+    "date": "2025-06-10",
+    "headline": "Apple Inc. Partners with Major Technology Firm",
+    "source": "CNBC",
+    "sentiment_score": -0.008,
+    "confidence": 0.543,
+    "url": "https://example.com/news/2"
+  },
+  {
+    "date": "2025-06-10",
+    "headline": "Analysts Upgrade Apple Inc. Stock Rating",
+    "source": "Reuters",
+    "sentiment_score": -0.242,
+    "confidence": 0.938,
+    "url": "https://example.com/news/16"
+  },
+  {
+    "date": "2025-06-09",
+    "headline": "Analysts Upgrade Apple Inc. Stock Rating",
+    "source": "MarketWatch",
+    "sentiment_score": 0.116,
+    "confidence": 0.721,
+    "url": "https://example.com/news/38"
+  },
+  {
+    "date": "2025-06-07",
+    "headline": "Apple Inc. Announces New Product Launch",
+    "source": "Bloomberg",
+    "sentiment_score": -0.064,
+    "confidence": 0.923,
+    "url": "https://example.com/news/9"
+  },
+  {
+    "date": "2025-06-07",
+    "headline": "Institutional Investors Increase Apple Inc. Holdings",
+    "source": "Yahoo Finance",
+    "sentiment_score": -0.296,
+    "confidence": 0.511,
+    "url": "https://example.com/news/20"
+  },
+  {
+    "date": "2025-06-07",
+    "headline": "Apple Inc. Reports Strong Quarterly Earnings",
+    "source": "Reuters",
+    "sentiment_score": 0.054,
+    "confidence": 0.903,
+    "url": "https://example.com/news/31"
+  },
+  {
+    "date": "2025-06-06",
+    "headline": "Apple Inc. Reports Strong Quarterly Earnings",
+    "source": "CNBC",
+    "sentiment_score": 0.572,
+    "confidence": 0.859,
+    "url": "https://example.com/news/13"
+  },
+  {
+    "date": "2025-06-05",
+    "headline": "Apple Inc. Announces New Product Launch",
+    "source": "Yahoo Finance",
+    "sentiment_score": 0.559,
+    "confidence": 0.702,
+    "url": "https://example.com/news/42"
+  },
+  {
+    "date": "2025-06-04",
+    "headline": "Apple Inc. Stock Reaches New High",
+    "source": "CNBC",
+    "sentiment_score": 0.451,
+    "confidence": 0.526,
+    "url": "https://example.com/news/35"
+  },
+  {
+    "date": "2025-06-03",
+    "headline": "Apple Inc. Partners with Major Technology Firm",
+    "source": "Yahoo Finance",
+    "sentiment_score": 0.007,
+    "confidence": 0.948,
+    "url": "https://example.com/news/3"
+  },
+  {
+    "date": "2025-06-03",
+    "headline": "Analysts Upgrade Apple Inc. Stock Rating",
+    "source": "MarketWatch",
+    "sentiment_score": 0.229,
+    "confidence": 0.796,
+    "url": "https://example.com/news/8"
+  },
+  {
+    "date": "2025-06-03",
+    "headline": "Market Volatility Affects Apple Inc. Shares",
+    "source": "Reuters",
+    "sentiment_score": 0.208,
+    "confidence": 0.523,
+    "url": "https://example.com/news/19"
+  },
+  {
+    "date": "2025-06-02",
+    "headline": "Apple Inc. Stock Reaches New High",
+    "source": "Bloomberg",
+    "sentiment_score": -0.086,
+    "confidence": 0.913,
+    "url": "https://example.com/news/5"
+  },
+  {
+    "date": "2025-06-01",
+    "headline": "Apple Inc. Announces New Product Launch",
+    "source": "MarketWatch",
+    "sentiment_score": 0.301,
+    "confidence": 0.559,
+    "url": "https://example.com/news/40"
+  },
+  {
+    "date": "2025-05-31",
+    "headline": "Institutional Investors Increase Apple Inc. Holdings",
+    "source": "MarketWatch",
+    "sentiment_score": -0.365,
+    "confidence": 0.661,
+    "url": "https://example.com/news/1"
+  },
+  {
+    "date": "2025-05-31",
+    "headline": "Institutional Investors Increase Apple Inc. Holdings",
+    "source": "Reuters",
+    "sentiment_score": -0.252,
+    "confidence": 0.813,
+    "url": "https://example.com/news/15"
+  },
+  {
+    "date": "2025-05-31",
+    "headline": "Apple Inc. Reports Strong Quarterly Earnings",
+    "source": "CNBC",
+    "sentiment_score": 0.557,
+    "confidence": 0.583,
+    "url": "https://example.com/news/37"
+  },
+  {
+    "date": "2025-05-30",
+    "headline": "Apple Inc. Announces New Product Launch",
+    "source": "Reuters",
+    "sentiment_score": -0.364,
+    "confidence": 0.595,
+    "url": "https://example.com/news/24"
+  },
+  {
+    "date": "2025-05-30",
+    "headline": "Apple Inc. CEO Discusses Future Strategy",
+    "source": "CNBC",
+    "sentiment_score": 0.09,
+    "confidence": 0.604,
+    "url": "https://example.com/news/46"
+  },
+  {
+    "date": "2025-05-28",
+    "headline": "Apple Inc. Announces New Product Launch",
+    "source": "Bloomberg",
+    "sentiment_score": 0.187,
+    "confidence": 0.93,
+    "url": "https://example.com/news/32"
+  },
+  {
+    "date": "2025-05-28",
+    "headline": "Institutional Investors Increase Apple Inc. Holdings",
+    "source": "MarketWatch",
+    "sentiment_score": 0.53,
+    "confidence": 0.87,
+    "url": "https://example.com/news/33"
+  },
+  {
+    "date": "2025-05-28",
+    "headline": "Apple Inc. Partners with Major Technology Firm",
+    "source": "MarketWatch",
+    "sentiment_score": 0.352,
+    "confidence": 0.785,
+    "url": "https://example.com/news/48"
+  },
+  {
+    "date": "2025-05-27",
+    "headline": "Institutional Investors Increase Apple Inc. Holdings",
+    "source": "MarketWatch",
+    "sentiment_score": 0.715,
+    "confidence": 0.721,
+    "url": "https://example.com/news/34"
+  },
+  {
+    "date": "2025-05-27",
+    "headline": "Market Volatility Affects Apple Inc. Shares",
+    "source": "Yahoo Finance",
+    "sentiment_score": 0.157,
+    "confidence": 0.94,
+    "url": "https://example.com/news/39"
+  }
+]

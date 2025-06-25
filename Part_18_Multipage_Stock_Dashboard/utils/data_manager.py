@@ -253,6 +253,102 @@ class StockDataManager:
         
         return financial_data
     
+    def _calculate_comprehensive_ratios(self, latest_income, latest_balance, latest_cashflow,
+                                      ttm_income, ttm_revenue, ttm_operating_income, ttm_operating_cf,
+                                      symbol, base_metrics):
+        """Calculate comprehensive financial ratios"""
+        
+        # Safe division function
+        def safe_divide(numerator, denominator, default=0):
+            return numerator / denominator if denominator != 0 else default
+        
+        # Get current stock price (mock based on symbol)
+        price_multiples = {'AAPL': 180, 'MSFT': 350, 'GOOGL': 130, 'TSLA': 200, 'SPY': 420}
+        current_price = price_multiples.get(symbol, 100)
+        
+        # Market metrics
+        shares = latest_balance['shares_outstanding']
+        market_cap = current_price * shares
+        enterprise_value = market_cap + latest_balance['long_term_debt'] - latest_balance['cash_and_equivalents']
+        
+        # Book value
+        book_value = latest_balance['stockholders_equity']
+        book_value_per_share = safe_divide(book_value, shares)
+        
+        # PROFITABILITY RATIOS
+        profitability = {
+            'gross_margin': safe_divide(ttm_revenue - sum([q['cost_of_revenue'] for q in [latest_income]*4]), ttm_revenue),
+            'operating_margin': safe_divide(ttm_operating_income, ttm_revenue),
+            'net_margin': safe_divide(ttm_income, ttm_revenue),
+            'roe': safe_divide(ttm_income, book_value),  # Return on Equity
+            'roa': safe_divide(ttm_income, latest_balance['total_assets']),  # Return on Assets
+            'roic': safe_divide(ttm_operating_income * 0.79, book_value + latest_balance['long_term_debt']),  # Return on Invested Capital (tax-adjusted)
+            'roc': safe_divide(ttm_income, latest_balance['stockholders_equity']),  # Return on Capital
+        }
+        
+        # LIQUIDITY RATIOS
+        liquidity = {
+            'current_ratio': safe_divide(latest_balance['current_assets'], latest_balance['current_liabilities']),
+            'quick_ratio': safe_divide(latest_balance['current_assets'] - latest_balance['inventory'], latest_balance['current_liabilities']),
+            'cash_ratio': safe_divide(latest_balance['cash_and_equivalents'], latest_balance['current_liabilities']),
+            'operating_cash_ratio': safe_divide(ttm_operating_cf, latest_balance['current_liabilities']),
+        }
+        
+        # LEVERAGE RATIOS
+        leverage = {
+            'debt_to_equity': safe_divide(latest_balance['long_term_debt'], latest_balance['stockholders_equity']),
+            'debt_to_assets': safe_divide(latest_balance['total_liabilities'], latest_balance['total_assets']),
+            'equity_ratio': safe_divide(latest_balance['stockholders_equity'], latest_balance['total_assets']),
+            'interest_coverage': safe_divide(ttm_operating_income, sum([q['interest_expense'] for q in [latest_income]*4]) or 1),
+            'debt_service_coverage': safe_divide(ttm_operating_cf, sum([q['interest_expense'] for q in [latest_income]*4]) or 1),
+        }
+        
+        # EFFICIENCY RATIOS
+        efficiency = {
+            'asset_turnover': safe_divide(ttm_revenue, latest_balance['total_assets']),
+            'inventory_turnover': safe_divide(sum([q['cost_of_revenue'] for q in [latest_income]*4]), latest_balance['inventory']) if latest_balance['inventory'] > 0 else 0,
+            'receivables_turnover': safe_divide(ttm_revenue, latest_balance['accounts_receivable']) if latest_balance['accounts_receivable'] > 0 else 0,
+            'days_sales_outstanding': safe_divide(latest_balance['accounts_receivable'] * 365, ttm_revenue) if ttm_revenue > 0 else 0,
+            'days_inventory_outstanding': safe_divide(latest_balance['inventory'] * 365, sum([q['cost_of_revenue'] for q in [latest_income]*4])) if latest_balance['inventory'] > 0 else 0,
+        }
+        
+        # VALUATION RATIOS
+        ttm_eps = safe_divide(ttm_income, shares)
+        
+        valuation = {
+            'pe_ratio': safe_divide(current_price, ttm_eps),
+            'pb_ratio': safe_divide(current_price, book_value_per_share),
+            'ps_ratio': safe_divide(market_cap, ttm_revenue),
+            'peg_ratio': safe_divide(safe_divide(current_price, ttm_eps), 15),  # Assuming 15% growth
+            'ev_ebitda': safe_divide(enterprise_value, ttm_operating_income + sum([q.get('depreciation_amortization', 0) for q in [latest_cashflow]*4])),
+            'ev_sales': safe_divide(enterprise_value, ttm_revenue),
+            'price_to_fcf': safe_divide(market_cap, sum([q['free_cash_flow'] for q in [latest_cashflow]*4])),
+        }
+        
+        # ADDITIONAL METRICS
+        additional = {
+            'market_cap': market_cap,
+            'enterprise_value': enterprise_value,
+            'book_value': book_value,
+            'book_value_per_share': book_value_per_share,
+            'current_price': current_price,
+            'ttm_eps': ttm_eps,
+            'ttm_revenue': ttm_revenue,
+            'ttm_net_income': ttm_income,
+            'working_capital': latest_balance['current_assets'] - latest_balance['current_liabilities'],
+        }
+        
+        return {
+            'profitability': profitability,
+            'liquidity': liquidity,
+            'leverage': leverage,
+            'efficiency': efficiency,
+            'valuation': valuation,
+            'additional': additional,
+            'calculation_date': datetime.now().strftime('%Y-%m-%d'),
+            'data_period': f"TTM ending {latest_income['period']}"
+        }
+    
     def _save_financial_data(self, data: Dict, symbol: str):
         """Save financial data to JSON file"""
         try:
