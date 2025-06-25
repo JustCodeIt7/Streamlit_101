@@ -1,0 +1,29 @@
+# Core Streamlit & Data Processing
+streamlit>=1.28.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Visualization - Plotly chosen for superior financial charts
+plotly>=5.15.0
+
+# Technical Analysis
+ta-lib>=0.4.0
+pandas-ta>=0.3.14b0
+
+# Machine Learning for Price Prediction
+scikit-learn>=1.3.0
+prophet>=1.1.4
+statsmodels>=0.14.0
+
+# Sentiment Analysis
+textblob>=0.17.1
+vaderSentiment>=3.3.2
+
+# Utilities
+yfinance>=0.2.18
+requests>=2.31.0
+python-dateutil>=2.8.2
+
+# Development & Testing
+pytest>=7.0.0
+black>=23.0.0
