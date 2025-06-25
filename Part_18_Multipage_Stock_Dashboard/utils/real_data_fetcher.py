@@ -93,6 +93,26 @@ class RealDataFetcher:
                 '52_week_low': info.get('fiftyTwoWeekLow', None),
                 'avg_volume': info.get('averageVolume', None),
                 'shares_outstanding': info.get('sharesOutstanding', None),
+                # Additional financial metrics
+                'forward_pe': info.get('forwardPE', None),
+                'peg_ratio': info.get('pegRatio', None),
+                'price_to_sales': info.get('priceToSalesTrailing12Months', None),
+                'enterprise_value': info.get('enterpriseValue', None),
+                'ebitda': info.get('ebitda', None),
+                'revenue': info.get('totalRevenue', None),
+                'gross_profit': info.get('grossProfits', None),
+                'free_cashflow': info.get('freeCashflow', None),
+                'operating_cashflow': info.get('operatingCashflow', None),
+                'total_debt': info.get('totalDebt', None),
+                'total_cash': info.get('totalCash', None),
+                'book_value': info.get('bookValue', None),
+                'current_ratio': info.get('currentRatio', None),
+                'debt_to_equity': info.get('debtToEquity', None),
+                'return_on_equity': info.get('returnOnEquity', None),
+                'return_on_assets': info.get('returnOnAssets', None),
+                'profit_margins': info.get('profitMargins', None),
+                'operating_margins': info.get('operatingMargins', None),
+                'gross_margins': info.get('grossMargins', None),
             }
             
             return company_info

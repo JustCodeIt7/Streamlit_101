@@ -1,0 +1,177 @@
+{
+  "income_statement": [
+    {
+      "year": 2019,
+      "quarter": 1,
+      "revenue": 100375000000,
+      "net_income": 15125000000,
+      "gross_profit": 40150000000,
+      "operating_income": 25093750000
+    },
+    {
+      "year": 2019,
+      "quarter": 2,
+      "revenue": 91250000000,
+      "net_income": 13750000000,
+      "gross_profit": 36500000000,
+      "operating_income": 22812500000
+    },
+    {
+      "year": 2019,
+      "quarter": 3,
+      "revenue": 82125000000,
+      "net_income": 12375000000,
+      "gross_profit": 32850000000,
+      "operating_income": 20531250000
+    },
+    {
+      "year": 2019,
+      "quarter": 4,
+      "revenue": 91250000000,
+      "net_income": 13750000000,
+      "gross_profit": 36500000000,
+      "operating_income": 22812500000
+    },
+    {
+      "year": 2020,
+      "quarter": 1,
+      "revenue": 108073024285,
+      "net_income": 16284976262,
+      "gross_profit": 43229209714,
+      "operating_income": 27018256071
+    },
+    {
+      "year": 2020,
+      "quarter": 2,
+      "revenue": 89470981588,
+      "net_income": 13481928732,
+      "gross_profit": 35788392635,
+      "operating_income": 22367745397
+    },
+    {
+      "year": 2020,
+      "quarter": 3,
+      "revenue": 86031050476,
+      "net_income": 12963582948,
+      "gross_profit": 34412420190,
+      "operating_income": 21507762619
+    },
+    {
+      "year": 2020,
+      "quarter": 4,
+      "revenue": 91769678077,
+      "net_income": 13828307655,
+      "gross_profit": 36707871230,
+      "operating_income": 22942419519
+    },
+    {
+      "year": 2021,
+      "quarter": 1,
+      "revenue": 96723003787,
+      "net_income": 14574699200,
+      "gross_profit": 38689201514,
+      "operating_income": 24180750946
+    },
+    {
+      "year": 2021,
+      "quarter": 2,
+      "revenue": 105396293145,
+      "net_income": 15881633213,
+      "gross_profit": 42158517258,
+      "operating_income": 26349073286
+    },
+    {
+      "year": 2021,
+      "quarter": 3,
+      "revenue": 99406550792,
+      "net_income": 14979069297,
+      "gross_profit": 39762620316,
+      "operating_income": 24851637698
+    },
+    {
+      "year": 2021,
+      "quarter": 4,
+      "revenue": 77983632973,
+      "net_income": 11750958393,
+      "gross_profit": 31193453189,
+      "operating_income": 19495908243
+    },
+    {
+      "year": 2022,
+      "quarter": 1,
+      "revenue": 108553334904,
+      "net_income": 16357351834,
+      "gross_profit": 43421333961,
+      "operating_income": 27138333726
+    },
+    {
+      "year": 2022,
+      "quarter": 2,
+      "revenue": 106029140095,
+      "net_income": 15976993713,
+      "gross_profit": 42411656038,
+      "operating_income": 26507285023
+    },
+    {
+      "year": 2022,
+      "quarter": 3,
+      "revenue": 88221731939,
+      "net_income": 13293685634,
+      "gross_profit": 35288692775,
+      "operating_income": 22055432984
+    },
+    {
+      "year": 2022,
+      "quarter": 4,
+      "revenue": 133819452296,
+      "net_income": 20164575003,
+      "gross_profit": 53527780918,
+      "operating_income": 33454863074
+    },
+    {
+      "year": 2023,
+      "quarter": 1,
+      "revenue": 166125220850,
+      "net_income": 25032567525,
+      "gross_profit": 66450088340,
+      "operating_income": 41531305212
+    },
+    {
+      "year": 2023,
+      "quarter": 2,
+      "revenue": 106684841878,
+      "net_income": 16075798091,
+      "gross_profit": 42673936751,
+      "operating_income": 26671210469
+    },
+    {
+      "year": 2023,
+      "quarter": 3,
+      "revenue": 76681014162,
+      "net_income": 11554673366,
+      "gross_profit": 30672405664,
+      "operating_income": 19170253540
+    },
+    {
+      "year": 2023,
+      "quarter": 4,
+      "revenue": 83252992125,
+      "net_income": 12544971416,
+      "gross_profit": 33301196850,
+      "operating_income": 20813248031
+    }
+  ],
+  "balance_sheet": [],
+  "cash_flow": [],
+  "ratios": {
+    "pe_ratio": 25.5,
+    "pb_ratio": 6.2,
+    "ps_ratio": 7.8,
+    "roe": 0.28,
+    "roa": 0.15,
+    "debt_to_equity": 0.85,
+    "current_ratio": 1.2,
+    "gross_margin": 0.42,
+    "net_margin": 0.15
+  }
+}

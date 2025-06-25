@@ -31,7 +31,9 @@ st.set_page_config(**STREAMLIT_CONFIG)
 
 def get_current_selection():
     """Get current stock selection from session state"""
-    return st.session_state.get('selected_stock', 'AAPL')
+    current_stock = st.session_state.get("selected_stock", "AAPL")
+    use_real_data = st.session_state.get("use_real_data", False)
+    return current_stock, use_real_data
 
 def display_financial_header(symbol: str):
     """Display financial statements header"""
@@ -884,12 +886,206 @@ def main():
     """Main function for the financial statements page"""
     
     # Get current selection
-    current_stock = get_current_selection()
+    current_stock, use_real_data = get_current_selection()
     
     # Display header
     display_financial_header(current_stock)
     
-    # Load financial data
+    # Check if this is a custom stock or using real data
+    if use_real_data or not is_predefined_stock(current_stock):
+        st.warning("📊 **Detailed Financial Statements - Limited for Real-Time Data**")
+        st.info("""
+        **Real-time financial statements are not yet fully implemented.**
+        
+        Detailed financial statement analysis (income statement, balance sheet, cash flow)
+        is currently available only for predefined stocks using sample data.
+        
+        **Available for real-time data:**
+        - Basic company information
+        - Market cap and valuation metrics
+        - Current financial ratios from market data
+        
+        **Coming soon:**
+        - Full financial statements from real-time sources
+        - Comprehensive ratio analysis
+        - Financial health assessment
+        """)
+        
+        # Show financial metrics that we can get from real-time data
+        try:
+            company_info = data_manager.get_company_info(current_stock, use_real_data=True)
+            metrics = data_manager.get_stock_metrics(current_stock, use_real_data=True)
+            
+            st.subheader("📈 Key Financial Metrics")
+            
+            # Valuation metrics
+            col1, col2, col3, col4, col5 = st.columns(5)
+            
+            with col1:
+                market_cap = company_info.get('market_cap', 0)
+                if market_cap > 0:
+                    if market_cap >= 1e12:
+                        cap_str = f"${market_cap/1e12:.1f}T"
+                    elif market_cap >= 1e9:
+                        cap_str = f"${market_cap/1e9:.1f}B"
+                    else:
+                        cap_str = f"${market_cap/1e6:.1f}M"
+                    st.metric("Market Cap", cap_str)
+            
+            with col2:
+                pe_ratio = company_info.get('pe_ratio')
+                if pe_ratio:
+                    st.metric("P/E Ratio", f"{pe_ratio:.2f}")
+            
+            with col3:
+                pb_ratio = company_info.get('pb_ratio')
+                if pb_ratio:
+                    st.metric("P/B Ratio", f"{pb_ratio:.2f}")
+            
+            with col4:
+                ps_ratio = company_info.get('price_to_sales')
+                if ps_ratio:
+                    st.metric("P/S Ratio", f"{ps_ratio:.2f}")
+            
+            with col5:
+                dividend_yield = company_info.get('dividend_yield')
+                if dividend_yield:
+                    st.metric("Dividend Yield", f"{dividend_yield*100:.2f}%")
+            
+            # Financial performance metrics
+            st.subheader("💰 Financial Performance")
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                revenue = company_info.get('revenue')
+                if revenue:
+                    if revenue >= 1e9:
+                        rev_str = f"${revenue/1e9:.1f}B"
+                    else:
+                        rev_str = f"${revenue/1e6:.1f}M"
+                    st.metric("Total Revenue", rev_str)
+            
+            with col2:
+                gross_profit = company_info.get('gross_profit')
+                if gross_profit:
+                    if gross_profit >= 1e9:
+                        profit_str = f"${gross_profit/1e9:.1f}B"
+                    else:
+                        profit_str = f"${gross_profit/1e6:.1f}M"
+                    st.metric("Gross Profit", profit_str)
+            
+            with col3:
+                ebitda = company_info.get('ebitda')
+                if ebitda:
+                    if ebitda >= 1e9:
+                        ebitda_str = f"${ebitda/1e9:.1f}B"
+                    else:
+                        ebitda_str = f"${ebitda/1e6:.1f}M"
+                    st.metric("EBITDA", ebitda_str)
+            
+            with col4:
+                free_cashflow = company_info.get('free_cashflow')
+                if free_cashflow:
+                    if free_cashflow >= 1e9:
+                        fcf_str = f"${free_cashflow/1e9:.1f}B"
+                    else:
+                        fcf_str = f"${free_cashflow/1e6:.1f}M"
+                    st.metric("Free Cash Flow", fcf_str)
+            
+            # Profitability ratios
+            st.subheader("📊 Profitability Ratios")
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                gross_margins = company_info.get('gross_margins')
+                if gross_margins:
+                    st.metric("Gross Margin", f"{gross_margins*100:.1f}%")
+            
+            with col2:
+                operating_margins = company_info.get('operating_margins')
+                if operating_margins:
+                    st.metric("Operating Margin", f"{operating_margins*100:.1f}%")
+            
+            with col3:
+                profit_margins = company_info.get('profit_margins')
+                if profit_margins:
+                    st.metric("Net Margin", f"{profit_margins*100:.1f}%")
+            
+            with col4:
+                roe = company_info.get('return_on_equity')
+                if roe:
+                    st.metric("Return on Equity", f"{roe*100:.1f}%")
+            
+            # Balance sheet metrics
+            st.subheader("⚖️ Balance Sheet Highlights")
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                total_cash = company_info.get('total_cash')
+                if total_cash:
+                    if total_cash >= 1e9:
+                        cash_str = f"${total_cash/1e9:.1f}B"
+                    else:
+                        cash_str = f"${total_cash/1e6:.1f}M"
+                    st.metric("Total Cash", cash_str)
+            
+            with col2:
+                total_debt = company_info.get('total_debt')
+                if total_debt:
+                    if total_debt >= 1e9:
+                        debt_str = f"${total_debt/1e9:.1f}B"
+                    else:
+                        debt_str = f"${total_debt/1e6:.1f}M"
+                    st.metric("Total Debt", debt_str)
+            
+            with col3:
+                current_ratio = company_info.get('current_ratio')
+                if current_ratio:
+                    st.metric("Current Ratio", f"{current_ratio:.2f}")
+            
+            with col4:
+                debt_to_equity = company_info.get('debt_to_equity')
+                if debt_to_equity:
+                    st.metric("Debt/Equity", f"{debt_to_equity:.2f}")
+            
+            # Company information
+            st.subheader("🏢 Company Information")
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write(f"**Sector:** {company_info.get('sector', 'Unknown')}")
+                st.write(f"**Industry:** {company_info.get('industry', 'Unknown')}")
+                st.write(f"**Country:** {company_info.get('country', 'Unknown')}")
+                st.write(f"**Exchange:** {company_info.get('exchange', 'Unknown')}")
+                
+                employees = company_info.get('employees', 0)
+                if employees > 0:
+                    st.write(f"**Employees:** {employees:,}")
+            
+            with col2:
+                beta = company_info.get('beta')
+                if beta:
+                    st.write(f"**Beta:** {beta:.2f}")
+                
+                book_value = company_info.get('book_value')
+                if book_value:
+                    st.write(f"**Book Value/Share:** ${book_value:.2f}")
+                
+                website = company_info.get('website', '')
+                if website:
+                    st.write(f"**Website:** [{website}]({website})")
+                
+                description = company_info.get('description', '')
+                if description and len(description) > 20:
+                    with st.expander("📖 Company Description"):
+                        st.write(description)
+        
+        except Exception as e:
+            st.error(f"Error loading basic financial data: {e}")
+        
+        return
+    
+    # Load financial data for predefined stocks
     try:
         financial_data = data_manager.load_financial_data(current_stock)
         
@@ -923,10 +1119,10 @@ def main():
         # Page footer
         st.markdown("---")
         st.info("""
-        💡 **Financial Analysis Tips:**  
-        • Use different time periods to spot trends and seasonality  
-        • Compare ratios with industry averages for context  
-        • Monitor financial health scores regularly  
+        💡 **Financial Analysis Tips:**
+        • Use different time periods to spot trends and seasonality
+        • Compare ratios with industry averages for context
+        • Monitor financial health scores regularly
         • Pay attention to cash flow trends as much as profitability
         """)
         
