@@ -246,7 +246,274 @@ class RealDataFetcher:
             'middle': rolling_mean,
             'lower': lower_band
         }
-    
+
+    @st.cache_data(ttl=3600, max_entries=5, show_spinner="Fetching financial statements...")  # 1 hour cache
+    def fetch_financial_statements(_self, symbol: str) -> Dict:
+        """
+        Fetch financial statements from yfinance and convert to expected format
+
+        Args:
+            symbol: Stock ticker symbol
+
+        Returns:
+            Dictionary with financial statements in expected format
+        """
+        try:
+            ticker = yf.Ticker(symbol.upper())
+
+            # Fetch financial statements
+            income_stmt = ticker.income_stmt
+            balance_sheet = ticker.balance_sheet
+            cashflow = ticker.cashflow
+            quarterly_income = ticker.quarterly_income_stmt
+
+            # Convert to expected format
+            financial_data = {
+                "income_statement": _self._convert_income_statement(income_stmt, quarterly_income),
+                "balance_sheet": _self._convert_balance_sheet(balance_sheet),
+                "cash_flow": _self._convert_cashflow(cashflow),
+                "ratios": _self._calculate_financial_ratios(income_stmt, balance_sheet, cashflow),
+            }
+
+            return financial_data
+
+        except Exception as e:
+            _self.logger.error(f"Error fetching financial statements for {symbol}: {e}")
+            return {}
+
+    def _convert_income_statement(self, income_stmt, quarterly_income):
+        """Convert yfinance income statement to expected format"""
+        try:
+            # Use annual data as primary, quarterly as backup
+            if not income_stmt.empty:
+                df = income_stmt.T  # Transpose: dates become rows, items become columns
+            elif not quarterly_income.empty:
+                df = quarterly_income.T
+            else:
+                return []
+
+            df.reset_index(inplace=True)
+            df.rename(columns={"index": "period"}, inplace=True)
+
+            # Rename columns to match expected format
+            column_mapping = {
+                "Total Revenue": "revenue",
+                "Cost Of Revenue": "cost_of_revenue",
+                "Gross Profit": "gross_profit",
+                "Operating Income": "operating_income",
+                "Net Income": "net_income",
+                "Operating Revenue": "revenue",  # Alternative name
+                "Reconciled Cost Of Revenue": "cost_of_revenue",  # Alternative name
+            }
+
+            for old_name, new_name in column_mapping.items():
+                if old_name in df.columns:
+                    df.rename(columns={old_name: new_name}, inplace=True)
+
+            # Convert to list of dictionaries
+            result = []
+            for _, row in df.iterrows():
+                period_str = str(row["period"])[:10]  # Format as YYYY-MM-DD
+
+                # Safe getter function for row values
+                def safe_row_get(key, default=0):
+                    value = row.get(key, default)
+                    if pd.isna(value):
+                        return default
+                    try:
+                        return float(value)
+                    except (ValueError, TypeError):
+                        return default
+
+                record = {
+                    "year": int(period_str[:4]) if period_str != "NaT" and len(period_str) >= 4 else 2024,
+                    "quarter": 4,  # Default for annual data
+                    "period": period_str,
+                    "revenue": safe_row_get("revenue"),
+                    "cost_of_revenue": safe_row_get("cost_of_revenue"),
+                    "gross_profit": safe_row_get("gross_profit"),
+                    "operating_income": safe_row_get("operating_income"),
+                    "net_income": safe_row_get("net_income"),
+                }
+                result.append(record)
+
+            return result
+
+        except Exception as e:
+            self.logger.error(f"Error converting income statement: {e}")
+            return []
+
+    def _convert_balance_sheet(self, balance_sheet):
+        """Convert yfinance balance sheet to expected format"""
+        try:
+            if balance_sheet.empty:
+                return []
+
+            df = balance_sheet.T
+            df.reset_index(inplace=True)
+            df.rename(columns={"index": "period"}, inplace=True)
+
+            # Map balance sheet items
+            column_mapping = {
+                "Cash And Cash Equivalents": "cash_and_equivalents",
+                "Accounts Receivable": "accounts_receivable",
+                "Inventory": "inventory",
+                "Current Assets": "current_assets",
+                "Total Assets": "total_assets",
+                "Current Liabilities": "current_liabilities",
+                "Long Term Debt": "long_term_debt",
+                "Total Liabilities Net Minority Interest": "total_liabilities",
+                "Stockholders Equity": "stockholders_equity",
+                "Ordinary Shares Number": "shares_outstanding",
+            }
+
+            for old_name, new_name in column_mapping.items():
+                if old_name in df.columns:
+                    df.rename(columns={old_name: new_name}, inplace=True)
+
+            result = []
+            for _, row in df.iterrows():
+                period_str = str(row["period"])[:10]
+
+                # Safe getter function for row values
+                def safe_row_get(key, default=0):
+                    value = row.get(key, default)
+                    if pd.isna(value):
+                        return default
+                    try:
+                        return float(value)
+                    except (ValueError, TypeError):
+                        return default
+
+                record = {
+                    "period": period_str,
+                    "cash_and_equivalents": safe_row_get("cash_and_equivalents"),
+                    "accounts_receivable": safe_row_get("accounts_receivable"),
+                    "inventory": safe_row_get("inventory"),
+                    "current_assets": safe_row_get("current_assets"),
+                    "total_assets": safe_row_get("total_assets"),
+                    "current_liabilities": safe_row_get("current_liabilities"),
+                    "long_term_debt": safe_row_get("long_term_debt"),
+                    "total_liabilities": safe_row_get("total_liabilities"),
+                    "stockholders_equity": safe_row_get("stockholders_equity"),
+                    "shares_outstanding": safe_row_get("shares_outstanding"),
+                }
+                result.append(record)
+
+            return result
+
+        except Exception as e:
+            self.logger.error(f"Error converting balance sheet: {e}")
+            return []
+
+    def _convert_cashflow(self, cashflow):
+        """Convert yfinance cash flow to expected format"""
+        try:
+            if cashflow.empty:
+                return []
+
+            df = cashflow.T
+            df.reset_index(inplace=True)
+            df.rename(columns={"index": "period"}, inplace=True)
+
+            column_mapping = {
+                "Operating Cash Flow": "operating_cash_flow",
+                "Investing Cash Flow": "investing_cash_flow",
+                "Financing Cash Flow": "financing_cash_flow",
+                "Free Cash Flow": "free_cash_flow",
+                "End Cash Position": "net_change_cash",
+            }
+
+            for old_name, new_name in column_mapping.items():
+                if old_name in df.columns:
+                    df.rename(columns={old_name: new_name}, inplace=True)
+
+            result = []
+            for _, row in df.iterrows():
+                period_str = str(row["period"])[:10]
+
+                record = {
+                    "period": period_str,
+                    "operating_cash_flow": float(row.get("operating_cash_flow", 0))
+                    if pd.notna(row.get("operating_cash_flow"))
+                    else 0,
+                    "investing_cash_flow": float(row.get("investing_cash_flow", 0))
+                    if pd.notna(row.get("investing_cash_flow"))
+                    else 0,
+                    "financing_cash_flow": float(row.get("financing_cash_flow", 0))
+                    if pd.notna(row.get("financing_cash_flow"))
+                    else 0,
+                    "free_cash_flow": float(row.get("free_cash_flow", 0)) if pd.notna(row.get("free_cash_flow")) else 0,
+                    "net_change_cash": float(row.get("net_change_cash", 0))
+                    if pd.notna(row.get("net_change_cash"))
+                    else 0,
+                }
+                result.append(record)
+
+            return result
+
+        except Exception as e:
+            self.logger.error(f"Error converting cash flow: {e}")
+            return []
+
+    def _calculate_financial_ratios(self, income_stmt, balance_sheet, cashflow):
+        """Calculate financial ratios from yfinance data"""
+        try:
+            # Get latest period data
+            if income_stmt.empty or balance_sheet.empty:
+                return {}
+
+            latest_income = income_stmt.iloc[:, 0]  # First column (latest period)
+            latest_balance = balance_sheet.iloc[:, 0]
+
+            # Extract key metrics with safe access
+            def safe_get(series, key, default=0):
+                return float(series.get(key, default)) if pd.notna(series.get(key)) else default
+
+            revenue = safe_get(latest_income, "Total Revenue")
+            cost_of_revenue = safe_get(latest_income, "Cost Of Revenue")
+            gross_profit = safe_get(latest_income, "Gross Profit")
+            operating_income = safe_get(latest_income, "Operating Income")
+            net_income = safe_get(latest_income, "Net Income")
+
+            total_assets = safe_get(latest_balance, "Total Assets")
+            current_assets = safe_get(latest_balance, "Current Assets")
+            current_liabilities = safe_get(latest_balance, "Current Liabilities")
+            stockholders_equity = safe_get(latest_balance, "Stockholders Equity")
+            long_term_debt = safe_get(latest_balance, "Long Term Debt")
+
+            # Calculate ratios with safe division
+            def safe_divide(a, b):
+                return a / b if b != 0 else 0
+
+            ratios = {
+                "profitability": {
+                    "gross_margin": safe_divide(gross_profit, revenue),
+                    "operating_margin": safe_divide(operating_income, revenue),
+                    "net_margin": safe_divide(net_income, revenue),
+                    "roe": safe_divide(net_income, stockholders_equity),
+                    "roa": safe_divide(net_income, total_assets),
+                },
+                "liquidity": {
+                    "current_ratio": safe_divide(current_assets, current_liabilities),
+                    "quick_ratio": safe_divide(current_assets, current_liabilities),  # Simplified
+                },
+                "leverage": {
+                    "debt_to_equity": safe_divide(long_term_debt, stockholders_equity),
+                    "debt_to_assets": safe_divide(long_term_debt, total_assets),
+                },
+                "additional": {
+                    "ttm_revenue": revenue,
+                    "ttm_net_income": net_income,
+                },
+            }
+
+            return ratios
+
+        except Exception as e:
+            self.logger.error(f"Error calculating financial ratios: {e}")
+            return {}
+
     def validate_symbol(self, symbol: str) -> Tuple[bool, str]:
         """
         Validate if a stock symbol exists and can be fetched

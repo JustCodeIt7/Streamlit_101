@@ -1087,7 +1087,7 @@ def main():
     
     # Load financial data for predefined stocks
     try:
-        financial_data = data_manager.load_financial_data(current_stock)
+        financial_data = data_manager.load_financial_data(current_stock, use_real_data=use_real_data)
         
         if not financial_data:
             st.error("Unable to load financial data. Please try another stock or refresh the page.")
@@ -1118,13 +1118,24 @@ def main():
         
         # Page footer
         st.markdown("---")
-        st.info("""
-        💡 **Financial Analysis Tips:**
-        • Use different time periods to spot trends and seasonality
-        • Compare ratios with industry averages for context
-        • Monitor financial health scores regularly
-        • Pay attention to cash flow trends as much as profitability
-        """)
+
+        # Different footer based on data source
+        if use_real_data or not is_predefined_stock(current_stock):
+            st.info("""
+            💡 **Real-Time Financial Data Tips:**
+            • Data is fetched live from Yahoo Finance
+            • Some fields may be unavailable for certain companies
+            • Ratios are calculated from available data
+            • Consider data freshness when making decisions
+            """)
+        else:
+            st.info("""
+            💡 **Financial Analysis Tips:**
+            • Use different time periods to spot trends and seasonality
+            • Compare ratios with industry averages for context
+            • Monitor financial health scores regularly
+            • Pay attention to cash flow trends as much as profitability
+            """)
         
         # Track page visit
         if 'page_visits' in st.session_state:
@@ -1133,6 +1144,15 @@ def main():
     except Exception as e:
         st.error(f"Error loading financial statements page: {e}")
         st.info("Please try refreshing the page or selecting a different stock.")
+
+        # Show debugging information in expander
+        with st.expander("🔍 Debug Information"):
+            st.write("**Error Details:**")
+            st.code(str(e))
+            st.write("**Current Selection:**")
+            st.write(f"- Stock: {current_stock}")
+            st.write(f"- Use Real Data: {use_real_data}")
+            st.write(f"- Is Predefined: {is_predefined_stock(current_stock)}")
 
 if __name__ == "__main__":
     main()

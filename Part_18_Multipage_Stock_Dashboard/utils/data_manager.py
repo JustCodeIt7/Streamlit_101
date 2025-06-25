@@ -192,24 +192,45 @@ class StockDataManager:
         return pd.DataFrame(columns=columns)
     
     @st.cache_data(ttl=CACHE_CONFIG['data_ttl'], max_entries=5)
-    def load_financial_data(_self, symbol: str) -> Dict:
+    def load_financial_data(_self, symbol: str, use_real_data: bool = False) -> Dict:
         """
         Load financial statements data for given symbol
         
         Args:
             symbol: Stock symbol
+            use_real_data: Whether to fetch real data or use sample data
             
         Returns:
             Dictionary with financial statements data
         """
         try:
+            # If real data is requested or it's not a predefined stock, try to fetch real data
+            if use_real_data or not is_predefined_stock(symbol):
+                try:
+                    return real_data_fetcher.fetch_financial_statements(symbol)
+                except Exception as e:
+                    st.warning(f"Could not fetch real financial data for {symbol}: {e}")
+                    # Fall back to sample data for predefined stocks
+                    if is_predefined_stock(symbol):
+                        st.info(f"Falling back to sample financial data for {symbol}")
+                    else:
+                        # For custom stocks, return empty if real data fails
+                        st.error(f"Unable to load financial data for custom symbol {symbol}")
+                        return {}
+            
+            # Use sample data for predefined stocks
             file_path = FINANCIAL_STATEMENTS_DIR / f"{symbol}_financials.json"
             
             if file_path.exists():
                 with open(file_path, 'r') as f:
                     return json.load(f)
             else:
-                return _self._generate_financial_data(symbol)
+                # Generate sample data if file doesn't exist for predefined stocks
+                if is_predefined_stock(symbol):
+                    return _self._generate_financial_data(symbol)
+                else:
+                    st.error(f"No financial data available for {symbol}")
+                    return {}
                 
         except Exception as e:
             st.error(f"Error loading financial data for {symbol}: {e}")
