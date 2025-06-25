@@ -121,9 +121,9 @@ def create_sidebar_navigation():
     
     # Technical Analysis Page
     st.sidebar.page_link(
-        "pages/02_🔧_technical_analysis.py",
-        label="🔧 Technical Analysis",
-        icon="🔧"
+        "pages/02_📊_technical_analysis.py",
+        label="📊 Technical Analysis",
+        icon="📊"
     )
     
     # Financial Statements Page
@@ -268,7 +268,7 @@ def display_footer():
         st.markdown("""
         ### 🔗 Quick Navigation
         - [📈 Overview](pages/01_📈_overview.py)
-        - [🔧 Technical Analysis](pages/02_🔧_technical_analysis.py)
+        - [📊 Technical Analysis](pages/02_📊_technical_analysis.py)
         - [💰 Financial Statements](pages/03_💰_financial_statements.py)
         """)
     

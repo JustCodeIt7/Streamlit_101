@@ -425,6 +425,293 @@ class ChartComponents:
                 gridcolor='rgba(128,128,128,0.2)'
             )
     
+    def create_rsi_chart(self, df: pd.DataFrame, rsi_series: pd.Series, title: str = "RSI") -> go.Figure:
+        """Create RSI chart with overbought/oversold levels"""
+        
+        fig = go.Figure()
+        
+        # RSI line
+        fig.add_trace(
+            go.Scatter(
+                x=rsi_series.index,
+                y=rsi_series.values,
+                name='RSI',
+                line=dict(color=self.colors['rsi'], width=2)
+            )
+        )
+        
+        # Reference lines
+        fig.add_hline(y=70, line_dash="dash", line_color="red", opacity=0.7, annotation_text="Overbought")
+        fig.add_hline(y=30, line_dash="dash", line_color="green", opacity=0.7, annotation_text="Oversold")
+        fig.add_hline(y=50, line_dash="dash", line_color="gray", opacity=0.5)
+        
+        fig.update_layout(
+            title=title,
+            template=self.theme,
+            height=300,
+            yaxis=dict(range=[0, 100], title="RSI"),
+            xaxis_title="Date",
+            showlegend=False
+        )
+        
+        return fig
+    
+    def create_macd_chart(self, df: pd.DataFrame, macd_data: Dict[str, pd.Series], title: str = "MACD") -> go.Figure:
+        """Create MACD chart with signal line and histogram"""
+        
+        fig = go.Figure()
+        
+        # MACD line
+        fig.add_trace(
+            go.Scatter(
+                x=macd_data['macd'].index,
+                y=macd_data['macd'].values,
+                name='MACD',
+                line=dict(color=self.colors['macd'], width=2)
+            )
+        )
+        
+        # Signal line
+        fig.add_trace(
+            go.Scatter(
+                x=macd_data['signal'].index,
+                y=macd_data['signal'].values,
+                name='Signal',
+                line=dict(color=self.colors['signal'], width=2)
+            )
+        )
+        
+        # Histogram
+        colors = ['green' if val >= 0 else 'red' for val in macd_data['histogram']]
+        fig.add_trace(
+            go.Bar(
+                x=macd_data['histogram'].index,
+                y=macd_data['histogram'].values,
+                name='Histogram',
+                marker_color=colors,
+                opacity=0.6
+            )
+        )
+        
+        # Zero line
+        fig.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
+        
+        fig.update_layout(
+            title=title,
+            template=self.theme,
+            height=300,
+            yaxis_title="MACD",
+            xaxis_title="Date",
+            showlegend=True
+        )
+        
+        return fig
+    
+    def create_bollinger_bands_chart(self, df: pd.DataFrame, bb_data: Dict[str, pd.Series], title: str = "Bollinger Bands") -> go.Figure:
+        """Create Bollinger Bands chart overlaid on price"""
+        
+        fig = go.Figure()
+        
+        # Price line
+        fig.add_trace(
+            go.Scatter(
+                x=df.index,
+                y=df['close'],
+                name='Close Price',
+                line=dict(color='blue', width=2)
+            )
+        )
+        
+        # Upper band
+        fig.add_trace(
+            go.Scatter(
+                x=bb_data['upper'].index,
+                y=bb_data['upper'].values,
+                name='Upper Band',
+                line=dict(color='rgba(173, 204, 255, 0.8)', width=1),
+                fill=None
+            )
+        )
+        
+        # Lower band (with fill)
+        fig.add_trace(
+            go.Scatter(
+                x=bb_data['lower'].index,
+                y=bb_data['lower'].values,
+                name='Lower Band',
+                line=dict(color='rgba(173, 204, 255, 0.8)', width=1),
+                fill='tonexty',
+                fillcolor='rgba(173, 204, 255, 0.1)'
+            )
+        )
+        
+        # Middle line (SMA)
+        fig.add_trace(
+            go.Scatter(
+                x=bb_data['middle'].index,
+                y=bb_data['middle'].values,
+                name='Middle (SMA)',
+                line=dict(color='rgba(173, 204, 255, 0.8)', width=1, dash='dash')
+            )
+        )
+        
+        fig.update_layout(
+            title=title,
+            template=self.theme,
+            height=400,
+            yaxis_title="Price ($)",
+            xaxis_title="Date",
+            showlegend=True
+        )
+        
+        return fig
+    
+    def create_stochastic_chart(self, stoch_data: Dict[str, pd.Series], title: str = "Stochastic Oscillator") -> go.Figure:
+        """Create Stochastic Oscillator chart"""
+        
+        fig = go.Figure()
+        
+        # %K line
+        fig.add_trace(
+            go.Scatter(
+                x=stoch_data['k'].index,
+                y=stoch_data['k'].values,
+                name='%K',
+                line=dict(color='blue', width=2)
+            )
+        )
+        
+        # %D line
+        fig.add_trace(
+            go.Scatter(
+                x=stoch_data['d'].index,
+                y=stoch_data['d'].values,
+                name='%D',
+                line=dict(color='red', width=2)
+            )
+        )
+        
+        # Reference lines
+        fig.add_hline(y=80, line_dash="dash", line_color="red", opacity=0.7, annotation_text="Overbought")
+        fig.add_hline(y=20, line_dash="dash", line_color="green", opacity=0.7, annotation_text="Oversold")
+        fig.add_hline(y=50, line_dash="dash", line_color="gray", opacity=0.5)
+        
+        fig.update_layout(
+            title=title,
+            template=self.theme,
+            height=300,
+            yaxis=dict(range=[0, 100], title="Stochastic"),
+            xaxis_title="Date",
+            showlegend=True
+        )
+        
+        return fig
+    
+    def create_williams_r_chart(self, williams_series: pd.Series, title: str = "Williams %R") -> go.Figure:
+        """Create Williams %R chart"""
+        
+        fig = go.Figure()
+        
+        # Williams %R line
+        fig.add_trace(
+            go.Scatter(
+                x=williams_series.index,
+                y=williams_series.values,
+                name='Williams %R',
+                line=dict(color='purple', width=2)
+            )
+        )
+        
+        # Reference lines
+        fig.add_hline(y=-20, line_dash="dash", line_color="red", opacity=0.7, annotation_text="Overbought")
+        fig.add_hline(y=-80, line_dash="dash", line_color="green", opacity=0.7, annotation_text="Oversold")
+        fig.add_hline(y=-50, line_dash="dash", line_color="gray", opacity=0.5)
+        
+        fig.update_layout(
+            title=title,
+            template=self.theme,
+            height=300,
+            yaxis=dict(range=[-100, 0], title="Williams %R"),
+            xaxis_title="Date",
+            showlegend=False
+        )
+        
+        return fig
+    
+    def create_signal_chart(self, df: pd.DataFrame, signals: List[Dict], title: str = "Trading Signals") -> go.Figure:
+        """Create chart showing trading signals on price"""
+        
+        fig = go.Figure()
+        
+        # Price line
+        fig.add_trace(
+            go.Scatter(
+                x=df.index,
+                y=df['close'],
+                name='Close Price',
+                line=dict(color='blue', width=2)
+            )
+        )
+        
+        # Add buy signals
+        buy_signals = [s for s in signals if s['type'] == 'BUY']
+        if buy_signals:
+            buy_dates = [s['date'] for s in buy_signals]
+            buy_prices = [s['price'] for s in buy_signals]
+            buy_text = [f"{s['indicator']}: {s['reason']}" for s in buy_signals]
+            
+            fig.add_trace(
+                go.Scatter(
+                    x=buy_dates,
+                    y=buy_prices,
+                    mode='markers',
+                    name='Buy Signal',
+                    marker=dict(
+                        symbol='triangle-up',
+                        color='green',
+                        size=12,
+                        line=dict(color='darkgreen', width=2)
+                    ),
+                    text=buy_text,
+                    hovertemplate='<b>BUY SIGNAL</b><br>%{text}<br>Price: $%{y}<br>Date: %{x}<extra></extra>'
+                )
+            )
+        
+        # Add sell signals
+        sell_signals = [s for s in signals if s['type'] == 'SELL']
+        if sell_signals:
+            sell_dates = [s['date'] for s in sell_signals]
+            sell_prices = [s['price'] for s in sell_signals]
+            sell_text = [f"{s['indicator']}: {s['reason']}" for s in sell_signals]
+            
+            fig.add_trace(
+                go.Scatter(
+                    x=sell_dates,
+                    y=sell_prices,
+                    mode='markers',
+                    name='Sell Signal',
+                    marker=dict(
+                        symbol='triangle-down',
+                        color='red',
+                        size=12,
+                        line=dict(color='darkred', width=2)
+                    ),
+                    text=sell_text,
+                    hovertemplate='<b>SELL SIGNAL</b><br>%{text}<br>Price: $%{y}<br>Date: %{x}<extra></extra>'
+                )
+            )
+        
+        fig.update_layout(
+            title=title,
+            template=self.theme,
+            height=400,
+            yaxis_title="Price ($)",
+            xaxis_title="Date",
+            showlegend=True
+        )
+        
+        return fig
+
     @st.cache_data(ttl=600)  # Cache charts for 10 minutes
     def create_cached_chart(_self, chart_type: str, **kwargs) -> go.Figure:
         """Create cached chart to improve performance"""
@@ -435,7 +722,13 @@ class ChartComponents:
             'indicator': _self.create_indicator_chart,
             'comparison': _self.create_comparison_chart,
             'correlation': _self.create_correlation_heatmap,
-            'metrics': _self.create_metrics_chart
+            'metrics': _self.create_metrics_chart,
+            'rsi': _self.create_rsi_chart,
+            'macd': _self.create_macd_chart,
+            'bollinger': _self.create_bollinger_bands_chart,
+            'stochastic': _self.create_stochastic_chart,
+            'williams': _self.create_williams_r_chart,
+            'signals': _self.create_signal_chart
         }
         
         if chart_type in chart_methods:
