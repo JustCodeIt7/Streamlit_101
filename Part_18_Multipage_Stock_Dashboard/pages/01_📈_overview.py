@@ -93,7 +93,7 @@ def display_key_metrics(symbol: str, use_real_data: bool = False):
     
     try:
         metrics = data_manager.get_stock_metrics(symbol, use_real_data=use_real_data)
-        
+        print(metrics)
         if not metrics:
             st.warning("Unable to load stock metrics")
             return
@@ -275,6 +275,7 @@ def display_performance_summary(symbol: str, use_real_data: bool = False):
     
     try:
         df = data_manager.load_stock_data(symbol, use_real_data=use_real_data)
+        print(df)
         
         if df.empty:
             st.warning("No data available for performance analysis")

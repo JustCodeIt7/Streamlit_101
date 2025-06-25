@@ -22,7 +22,7 @@ sys.path.append(str(PROJECT_ROOT))
 
 # Import configuration and utilities
 from config.settings import STREAMLIT_CONFIG, FINANCIAL_RATIOS
-from config.stock_symbols import get_stock_info
+from config.stock_symbols import get_stock_info, is_predefined_stock
 from utils.data_manager import data_manager
 from utils.chart_components import chart_components
 

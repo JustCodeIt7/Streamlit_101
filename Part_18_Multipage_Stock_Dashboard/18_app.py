@@ -386,57 +386,9 @@ def display_welcome_message():
     3. **Navigate to different pages** using the sidebar links
     4. **Explore interactive charts** and customize indicators
     
-    **💡 Pro Tip**: Start with the **📈 Stock Overview** page for a comprehensive view, 
-    then dive deeper into specific analysis areas!
-    """)
-    
-    # Demo information
-    st.info("""
-    🎬 **YouTube Demo Mode**: This dashboard uses high-quality sample data for consistent 
-    demonstration purposes. All charts and analysis are based on realistic financial patterns 
-    and correlations for educational value.
+
     """)
 
-def display_footer():
-    """Display footer with additional information"""
-    
-    st.markdown("---")
-    
-    footer_col1, footer_col2, footer_col3 = st.columns(3)
-    
-    with footer_col1:
-        st.markdown("""
-        ### 📚 Learning Resources
-        - [Streamlit Documentation](https://docs.streamlit.io)
-        - [Plotly Financial Charts](https://plotly.com/python/candlestick-charts/)
-        - [Technical Analysis Guide](https://www.investopedia.com/technical-analysis-4689657)
-        """)
-    
-    with footer_col2:
-        st.markdown("""
-        ### 🔗 Quick Navigation
-        - [📈 Overview](pages/01_📈_overview.py)
-        - [📊 Technical Analysis](pages/02_📊_technical_analysis.py)
-        - [💰 Financial Statements](pages/03_💰_financial_statements.py)
-        """)
-    
-    with footer_col3:
-        st.markdown("""
-        ### ⚡ Performance
-        - Multi-level caching for speed
-        - Optimized chart rendering
-        - Sample data for consistency
-        """)
-    
-    # Credits
-    st.markdown("---")
-    st.markdown("""
-    <div style='text-align: center; color: #666; padding: 20px;'>
-        <p><strong>Advanced Stock Analysis Dashboard</strong></p>
-        <p>Built with ❤️ using Streamlit, Plotly, and advanced financial analysis libraries</p>
-        <p><em>Created for educational purposes and YouTube demonstration</em></p>
-    </div>
-    """, unsafe_allow_html=True)
 
 def main():
     """Main application function"""
@@ -449,10 +401,7 @@ def main():
     
     # Display main content
     display_welcome_message()
-    
-    # Display footer
-    display_footer()
-    
+
     # Track page visit
     st.session_state.page_visits['overview'] += 1
 
