@@ -15,6 +15,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
 from datetime import datetime, timedelta
+from rich import print
 
 # Add project root to path for imports
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -915,7 +916,8 @@ def main():
         try:
             company_info = data_manager.get_company_info(current_stock, use_real_data=True)
             metrics = data_manager.get_stock_metrics(current_stock, use_real_data=True)
-            
+            print(company_info)
+            print(metrics)
             st.subheader("📈 Key Financial Metrics")
             
             # Valuation metrics
