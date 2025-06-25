@@ -20,8 +20,14 @@ sys.path.append(str(PROJECT_ROOT))
 # Import configuration and utilities
 from config.settings import STREAMLIT_CONFIG, ensure_directories
 from config.stock_symbols import (
-    get_all_symbols, get_stock_names, DEFAULT_SYMBOL, 
-    TIME_PERIODS, DEFAULT_TIME_PERIOD
+    get_all_symbols,
+    get_stock_names,
+    DEFAULT_SYMBOL,
+    TIME_PERIODS,
+    DEFAULT_TIME_PERIOD,
+    is_predefined_stock,
+    get_stock_display_name,
+    validate_ticker_format,
 )
 from utils.data_manager import data_manager
 
@@ -41,6 +47,18 @@ def initialize_session_state():
     # Time period state
     if 'selected_period' not in st.session_state:
         st.session_state.selected_period = DEFAULT_TIME_PERIOD
+    
+    # Custom ticker input state
+    if 'custom_ticker' not in st.session_state:
+        st.session_state.custom_ticker = ""
+    
+    # Data source preference
+    if 'use_real_data' not in st.session_state:
+        st.session_state.use_real_data = False
+    
+    # Stock selection mode (predefined vs custom)
+    if 'stock_selection_mode' not in st.session_state:
+        st.session_state.stock_selection_mode = "predefined"
     
     # Page visit tracking for analytics
     if 'page_visits' not in st.session_state:
@@ -65,15 +83,65 @@ def create_sidebar_navigation():
     st.sidebar.title("📊 Stock Analysis Dashboard")
     st.sidebar.markdown("---")
     
-    # Stock Selector
+    # Stock Selection Mode
     st.sidebar.subheader("🏢 Stock Selection")
     
+    # Selection mode toggle
+    selection_mode = st.sidebar.radio(
+        "Choose Selection Mode:",
+        ["Predefined Stocks", "Custom Ticker"],
+        index=0 if st.session_state.stock_selection_mode == "predefined" else 1,
+        key="selection_mode_radio"
+    )
+    
+    # Update session state for selection mode
+    new_mode = "predefined" if selection_mode == "Predefined Stocks" else "custom"
+    if new_mode != st.session_state.stock_selection_mode:
+        st.session_state.stock_selection_mode = new_mode
+        st.rerun()
+    
+    # Handle stock selection based on mode
+    if st.session_state.stock_selection_mode == "predefined":
+        _handle_predefined_stock_selection()
+    else:
+        _handle_custom_ticker_input()
+    
+    # Data Source Selection
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📡 Data Source")
+    
+    use_real_data = st.sidebar.checkbox(
+        "Use Real-Time Data",
+        value=st.session_state.use_real_data,
+        help="Fetch live data from Yahoo Finance (may be slower)",
+        key="real_data_checkbox"
+    )
+    
+    if use_real_data != st.session_state.use_real_data:
+        st.session_state.use_real_data = use_real_data
+        st.rerun()
+    
+    # Show data source info
+    if st.session_state.use_real_data:
+        st.sidebar.info("📈 Using real-time data from Yahoo Finance")
+    else:
+        if is_predefined_stock(st.session_state.selected_stock):
+            st.sidebar.info("📊 Using high-quality sample data")
+        else:
+            st.sidebar.warning("⚠️ Custom stocks require real-time data")
+
+def _handle_predefined_stock_selection():
+    """Handle predefined stock selection"""
     stock_names = get_stock_names()
     stock_options = [f"{symbol} - {name}" for symbol, name in stock_names.items()]
     
     # Find current selection index
-    current_selection = f"{st.session_state.selected_stock} - {stock_names[st.session_state.selected_stock]}"
-    current_index = stock_options.index(current_selection) if current_selection in stock_options else 0
+    if is_predefined_stock(st.session_state.selected_stock):
+        current_selection = f"{st.session_state.selected_stock} - {stock_names[st.session_state.selected_stock]}"
+        current_index = stock_options.index(current_selection) if current_selection in stock_options else 0
+    else:
+        current_index = 0
+        st.session_state.selected_stock = DEFAULT_SYMBOL
     
     selected_option = st.sidebar.selectbox(
         "Choose Stock:",
@@ -89,6 +157,63 @@ def create_sidebar_navigation():
     if selected_symbol != st.session_state.selected_stock:
         st.session_state.selected_stock = selected_symbol
         st.rerun()
+
+def _handle_custom_ticker_input():
+    """Handle custom ticker input"""
+    
+    # Custom ticker input
+    custom_ticker = st.sidebar.text_input(
+        "Enter Stock Ticker:",
+        value=st.session_state.custom_ticker,
+        placeholder="e.g., NVDA, AMD, META",
+        help="Enter any valid stock ticker symbol",
+        key="custom_ticker_input"
+    ).upper().strip()
+    
+    # Validate and load button
+    col1, col2 = st.sidebar.columns([3, 1])
+    
+    with col1:
+        load_button = st.button("Load Stock", type="primary", use_container_width=True)
+    
+    with col2:
+        if st.button("ℹ️", help="Ticker format: 1-5 letters only"):
+            st.sidebar.info("""
+            **Ticker Format:**
+            - 1-5 letters only
+            - Examples: AAPL, MSFT, GOOGL
+            - No spaces or special characters
+            """)
+    
+    # Handle ticker loading
+    if load_button and custom_ticker:
+        if validate_ticker_format(custom_ticker):
+            with st.sidebar.spinner(f"Validating {custom_ticker}..."):
+                is_valid, message = data_manager.validate_stock_symbol(custom_ticker)
+                
+                if is_valid:
+                    st.session_state.custom_ticker = custom_ticker
+                    st.session_state.selected_stock = custom_ticker
+                    st.session_state.use_real_data = True  # Force real data for custom stocks
+                    st.sidebar.success(f"✅ Loaded {custom_ticker}")
+                    st.rerun()
+                else:
+                    st.sidebar.error(f"❌ {message}")
+        else:
+            st.sidebar.error("❌ Invalid ticker format. Use 1-5 letters only.")
+    
+    # Show current custom stock if loaded
+    if st.session_state.stock_selection_mode == "custom" and st.session_state.selected_stock:
+        if not is_predefined_stock(st.session_state.selected_stock):
+            st.sidebar.success(f"📈 Current: {st.session_state.selected_stock}")
+            
+            # Add remove button
+            if st.sidebar.button("🗑️ Clear Custom Stock"):
+                st.session_state.selected_stock = DEFAULT_SYMBOL
+                st.session_state.custom_ticker = ""
+                st.session_state.stock_selection_mode = "predefined"
+                st.session_state.use_real_data = False
+                st.rerun()
     
     # Time Period Selector
     st.sidebar.subheader("📅 Time Period")
@@ -151,9 +276,19 @@ def create_sidebar_navigation():
     
     # Current Selection Summary
     st.sidebar.subheader("📋 Current Selection")
+    
+    # Get display name for current stock
+    if is_predefined_stock(st.session_state.selected_stock):
+        stock_display = f"{st.session_state.selected_stock} - {get_stock_names()[st.session_state.selected_stock]}"
+    else:
+        stock_display = get_stock_display_name(st.session_state.selected_stock)
+    
+    data_source = "Real-Time" if st.session_state.use_real_data else "Sample Data"
+    
     st.sidebar.info(f"""
-    **Stock:** {st.session_state.selected_stock}  
+    **Stock:** {stock_display}
     **Period:** {TIME_PERIODS[st.session_state.selected_period]['label']}
+    **Data:** {data_source}
     """)
     
     # Cache Management
@@ -188,10 +323,15 @@ def display_welcome_message():
     current_stock = st.session_state.selected_stock
     
     try:
-        metrics = data_manager.get_stock_metrics(current_stock)
+        # Get stock metrics with appropriate data source
+        metrics = data_manager.get_stock_metrics(current_stock, use_real_data=st.session_state.use_real_data)
         
         if metrics:
-            st.subheader(f"📋 Quick Stats - {current_stock}")
+            # Display company name
+            company_info = data_manager.get_company_info(current_stock, use_real_data=st.session_state.use_real_data)
+            company_name = company_info.get('name', current_stock)
+            
+            st.subheader(f"📋 Quick Stats - {company_name}")
             
             col1, col2, col3, col4 = st.columns(4)
             
@@ -217,12 +357,24 @@ def display_welcome_message():
             
             with col4:
                 st.metric(
-                    "52W Low", 
+                    "52W Low",
                     f"${metrics['low_52w']:.2f}"
                 )
+            
+            # Show additional info for custom stocks
+            if not is_predefined_stock(current_stock):
+                st.info(f"""
+                **Company:** {company_name}
+                **Sector:** {company_info.get('sector', 'Unknown')}
+                **Exchange:** {company_info.get('exchange', 'Unknown')}
+                **Last Updated:** {metrics.get('last_updated', 'Unknown')}
+                """)
     
     except Exception as e:
-        st.warning("Loading stock data... Please wait a moment.")
+        if not is_predefined_stock(current_stock):
+            st.error(f"Unable to load data for {current_stock}. Please check the ticker symbol and try again.")
+        else:
+            st.warning("Loading stock data... Please wait a moment.")
     
     # Navigation guidance
     st.markdown("---")

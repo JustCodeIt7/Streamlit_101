@@ -9,18 +9,27 @@ This dashboard demonstrates advanced Streamlit capabilities for building profess
 ### Key Features
 
 - 📈 **Stock Overview**: Real-time metrics, interactive candlestick charts, and performance analysis
-- 🔧 **Technical Analysis**: 15+ technical indicators with customizable parameters  
+- 🎯 **Custom Ticker Input**: Enter any valid stock ticker to analyze any publicly traded stock
+- 📡 **Real-Time Data**: Fetch live data from Yahoo Finance for up-to-date analysis
+- � **Technical Analysis**: 15+ technical indicators with customizable parameters
 - 💰 **Financial Statements**: Comprehensive financial health analysis and ratios
 - 📰 **Sentiment Analysis**: News sentiment tracking and market impact correlation
 - 🤖 **Price Prediction**: Machine learning models for price forecasting
 
-### Supported Stocks
+### Stock Analysis Options
 
+#### Pre-defined Stocks (Sample Data)
 - **AAPL** - Apple Inc.
-- **MSFT** - Microsoft Corporation  
+- **MSFT** - Microsoft Corporation
 - **GOOGL** - Alphabet Inc.
 - **TSLA** - Tesla, Inc.
 - **SPY** - SPDR S&P 500 ETF
+
+#### Custom Stock Input
+- Enter any valid ticker symbol (e.g., NVDA, AMD, META, AMZN)
+- Real-time data fetching from Yahoo Finance
+- Automatic validation and error handling
+- Support for stocks, ETFs, and other securities
 
 ## 🚀 Quick Start
 
@@ -181,16 +190,48 @@ This dashboard is optimized for YouTube presentation with:
 ## 🔍 Usage Examples
 
 ### Basic Navigation
-1. Select a stock from the sidebar dropdown
-2. Choose your analysis timeframe
-3. Navigate between pages using sidebar links
-4. Interact with charts (zoom, pan, hover)
+1. **Choose your stock selection method:**
+   - **Predefined Stocks**: Select from AAPL, MSFT, GOOGL, TSLA, SPY
+   - **Custom Ticker**: Enter any valid stock ticker symbol
+
+2. **For Custom Tickers:**
+   - Switch to "Custom Ticker" mode in the sidebar
+   - Enter a ticker symbol (e.g., NVDA, AMD, META)
+   - Click "Load Stock" to fetch real-time data
+   - The app will validate the ticker and load the data
+
+3. **Configure data source:**
+   - Toggle "Use Real-Time Data" for live market data
+   - Sample data provides consistent demo experience
+   - Real-time data shows current market conditions
+
+4. Choose your analysis timeframe
+5. Navigate between pages using sidebar links
+6. Interact with charts (zoom, pan, hover)
 
 ### Advanced Features
+- **Custom Stock Analysis**: Enter any ticker for real-time analysis
+- **Data Source Switching**: Toggle between sample and real-time data
+- **Automatic Validation**: Invalid tickers are caught and reported
 - Customize chart indicators in the Overview page
 - Compare performance across different time periods
 - Analyze volume patterns and price correlations
 - Explore risk metrics and volatility analysis
+
+### Ticker Input Examples
+```
+Valid Examples:
+✅ NVDA (NVIDIA Corporation)
+✅ AMD (Advanced Micro Devices)
+✅ META (Meta Platforms)
+✅ AMZN (Amazon.com Inc.)
+✅ QQQ (Invesco QQQ ETF)
+
+Invalid Examples:
+❌ INVALID (Non-existent ticker)
+❌ 123 (Numbers only)
+❌ TOOLONG (More than 5 characters)
+```
 
 ## 🛠️ Development
 

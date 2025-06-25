@@ -17,7 +17,7 @@ sys.path.append(str(PROJECT_ROOT))
 
 # Import configuration and utilities
 from config.settings import STREAMLIT_CONFIG
-from config.stock_symbols import get_stock_info, TIME_PERIODS
+from config.stock_symbols import get_stock_info, TIME_PERIODS, is_predefined_stock
 from utils.data_manager import data_manager
 from utils.chart_components import chart_components
 
@@ -28,26 +28,42 @@ def get_current_selection():
     """Get current stock and period selection from session state"""
     current_stock = st.session_state.get('selected_stock', 'AAPL')
     current_period = st.session_state.get('selected_period', '1Y')
-    return current_stock, current_period
+    use_real_data = st.session_state.get('use_real_data', False)
+    return current_stock, current_period, use_real_data
 
-def display_stock_header(symbol: str):
+def display_stock_header(symbol: str, use_real_data: bool = False):
     """Display stock header with company information"""
-    stock_info = get_stock_info(symbol)
     
-    if stock_info:
-        st.title(f"📈 {stock_info['name']} ({symbol})")
+    # Get company info using the data manager (handles both predefined and custom stocks)
+    try:
+        company_info = data_manager.get_company_info(symbol, use_real_data=use_real_data)
+        
+        company_name = company_info.get('name', symbol)
+        st.title(f"📈 {company_name} ({symbol})")
         
         col1, col2 = st.columns([2, 1])
         
         with col1:
+            # Show data source indicator
+            data_source = "Real-Time Data" if use_real_data or not is_predefined_stock(symbol) else "Sample Data"
+            
             st.markdown(f"""
-            **Sector:** {stock_info.get('sector', 'N/A')}  
-            **Industry:** {stock_info.get('industry', 'N/A')}  
-            **Description:** {stock_info.get('description', 'N/A')}
+            **Sector:** {company_info.get('sector', 'N/A')}
+            **Industry:** {company_info.get('industry', 'N/A')}
+            **Exchange:** {company_info.get('exchange', 'N/A')}
+            **Data Source:** {data_source}
             """)
+            
+            # Show description if available
+            description = company_info.get('description', '')
+            if description and description != 'N/A':
+                # Truncate long descriptions
+                if len(description) > 200:
+                    description = description[:200] + "..."
+                st.caption(description)
         
         with col2:
-            market_cap = stock_info.get('market_cap', 0)
+            market_cap = company_info.get('market_cap', 0)
             if market_cap > 0:
                 if market_cap >= 1e12:
                     cap_str = f"${market_cap/1e12:.1f}T"
@@ -57,14 +73,26 @@ def display_stock_header(symbol: str):
                     cap_str = f"${market_cap/1e6:.1f}M"
                 
                 st.metric("Market Cap", cap_str)
-    else:
+            
+            # Show additional metrics for real data
+            if use_real_data or not is_predefined_stock(symbol):
+                pe_ratio = company_info.get('pe_ratio')
+                if pe_ratio:
+                    st.metric("P/E Ratio", f"{pe_ratio:.2f}")
+                
+                dividend_yield = company_info.get('dividend_yield')
+                if dividend_yield:
+                    st.metric("Dividend Yield", f"{dividend_yield*100:.2f}%")
+    
+    except Exception as e:
         st.title(f"📈 Stock Overview - {symbol}")
+        st.error(f"Unable to load company information: {e}")
 
-def display_key_metrics(symbol: str):
+def display_key_metrics(symbol: str, use_real_data: bool = False):
     """Display key stock metrics in a metrics row"""
     
     try:
-        metrics = data_manager.get_stock_metrics(symbol)
+        metrics = data_manager.get_stock_metrics(symbol, use_real_data=use_real_data)
         
         if not metrics:
             st.warning("Unable to load stock metrics")
@@ -105,7 +133,7 @@ def display_key_metrics(symbol: str):
         
         with col5:
             # Calculate day range
-            df = data_manager.load_stock_data(symbol)
+            df = data_manager.load_stock_data(symbol, use_real_data=use_real_data)
             if not df.empty:
                 latest = df.iloc[-1]
                 day_range = f"${latest['low']:.2f} - ${latest['high']:.2f}"
@@ -140,20 +168,29 @@ def display_key_metrics(symbol: str):
                 atr = true_range.rolling(14).mean().iloc[-1]
                 st.metric("ATR (14)", f"${atr:.2f}")
         
+        # Show last updated time for real data
+        if use_real_data or not is_predefined_stock(symbol):
+            last_updated = metrics.get('last_updated', 'Unknown')
+            st.caption(f"📅 Last updated: {last_updated}")
+        
     except Exception as e:
         st.error(f"Error loading metrics: {e}")
+        if not is_predefined_stock(symbol):
+            st.info("💡 This might be due to an invalid ticker symbol or network issues. Please verify the symbol and try again.")
 
-def display_price_chart(symbol: str, period: str):
+def display_price_chart(symbol: str, period: str, use_real_data: bool = False):
     """Display interactive candlestick chart with volume"""
     
     st.subheader("📈 Price Chart")
     
     try:
         # Load data
-        df = data_manager.load_stock_data(symbol)
+        df = data_manager.load_stock_data(symbol, use_real_data=use_real_data)
         
         if df.empty:
             st.error("No data available for chart")
+            if not is_predefined_stock(symbol):
+                st.info("💡 Please check if the ticker symbol is correct and try again.")
             return
         
         # Filter by period
@@ -182,7 +219,8 @@ def display_price_chart(symbol: str, period: str):
         
         with chart_col1:
             # Create chart
-            chart_title = f"{symbol} - {TIME_PERIODS[period]['label']}"
+            data_source_label = "Real-Time" if use_real_data or not is_predefined_stock(symbol) else "Sample"
+            chart_title = f"{symbol} - {TIME_PERIODS[period]['label']} ({data_source_label} Data)"
             
             fig = chart_components.create_candlestick_chart(
                 df=filtered_df,
@@ -206,9 +244,9 @@ def display_price_chart(symbol: str, period: str):
                 total_return = ((end_price - start_price) / start_price) * 100
                 
                 st.info(f"""
-                **Period Performance**  
-                Total Return: {total_return:+.2f}%  
-                Start Price: ${start_price:.2f}  
+                **Period Performance**
+                Total Return: {total_return:+.2f}%
+                Start Price: ${start_price:.2f}
                 End Price: ${end_price:.2f}
                 """)
             
@@ -219,22 +257,24 @@ def display_price_chart(symbol: str, period: str):
                 max_drawdown = ((filtered_df['close'] / filtered_df['close'].expanding().max()) - 1).min() * 100
                 
                 st.info(f"""
-                **Risk Metrics**  
-                Volatility: {volatility:.1f}%  
-                Max Drawdown: {max_drawdown:.1f}%  
+                **Risk Metrics**
+                Volatility: {volatility:.1f}%
+                Max Drawdown: {max_drawdown:.1f}%
                 Sharpe Ratio: {(total_return / volatility * np.sqrt(252/len(filtered_df))):.2f}
                 """)
     
     except Exception as e:
         st.error(f"Error creating chart: {e}")
+        if not is_predefined_stock(symbol):
+            st.info("💡 This might be due to an invalid ticker symbol or network issues.")
 
-def display_performance_summary(symbol: str):
+def display_performance_summary(symbol: str, use_real_data: bool = False):
     """Display performance summary for different time periods"""
     
     st.subheader("📈 Performance Summary")
     
     try:
-        df = data_manager.load_stock_data(symbol)
+        df = data_manager.load_stock_data(symbol, use_real_data=use_real_data)
         
         if df.empty:
             st.warning("No data available for performance analysis")
@@ -347,18 +387,18 @@ def main():
     """Main function for the overview page"""
     
     # Get current selection
-    current_stock, current_period = get_current_selection()
+    current_stock, current_period, use_real_data = get_current_selection()
     
     # Display stock header
-    display_stock_header(current_stock)
+    display_stock_header(current_stock, use_real_data)
     
     # Display key metrics
-    display_key_metrics(current_stock)
+    display_key_metrics(current_stock, use_real_data)
     
     st.markdown("---")
     
     # Display price chart
-    display_price_chart(current_stock, current_period)
+    display_price_chart(current_stock, current_period, use_real_data)
     
     st.markdown("---")
     
@@ -366,17 +406,32 @@ def main():
     left_col, right_col = st.columns([3, 2])
     
     with left_col:
-        display_performance_summary(current_stock)
+        display_performance_summary(current_stock, use_real_data)
     
     with right_col:
-        display_recent_news(current_stock)
+        # Only show news for predefined stocks (sample news data)
+        if is_predefined_stock(current_stock) and not use_real_data:
+            display_recent_news(current_stock)
+        else:
+            st.subheader("📰 News & Sentiment")
+            st.info("""
+            📈 **Real-Time News Coming Soon**
+            
+            News sentiment analysis is currently available for predefined stocks with sample data.
+            Real-time news integration for custom stocks is planned for future updates.
+            """)
     
     # Page footer
     st.markdown("---")
-    st.info("""
-    💡 **Navigation Tips:**  
-    • Use the sidebar to switch stocks and time periods  
-    • Charts are interactive - zoom, pan, and hover for details  
+    
+    # Updated navigation tips
+    data_source = "real-time" if use_real_data or not is_predefined_stock(current_stock) else "sample"
+    
+    st.info(f"""
+    💡 **Navigation Tips:**
+    • Use the sidebar to switch stocks, time periods, and data sources
+    • Currently using {data_source} data for {current_stock}
+    • Charts are interactive - zoom, pan, and hover for details
     • Explore other pages for detailed technical and fundamental analysis
     """)
     

@@ -15,11 +15,12 @@ import logging
 # Import configuration
 import sys
 sys.path.append(str(Path(__file__).parent.parent))
-from config.stock_symbols import STOCK_SYMBOLS, DEFAULT_SYMBOL
+from config.stock_symbols import STOCK_SYMBOLS, DEFAULT_SYMBOL, is_predefined_stock
 from config.settings import (
-    CACHE_CONFIG, DATA_GENERATION_CONFIG, 
+    CACHE_CONFIG, DATA_GENERATION_CONFIG,
     SAMPLE_STOCKS_DIR, NEWS_SAMPLES_DIR, FINANCIAL_STATEMENTS_DIR
 )
+from utils.real_data_fetcher import real_data_fetcher
 
 class StockDataManager:
     """Centralized data management for stock analysis dashboard"""
@@ -28,25 +29,45 @@ class StockDataManager:
         self.logger = logging.getLogger(__name__)
         
     @st.cache_data(ttl=CACHE_CONFIG['data_ttl'], max_entries=CACHE_CONFIG['max_entries_data'])
-    def load_stock_data(_self, symbol: str) -> pd.DataFrame:
+    def load_stock_data(_self, symbol: str, use_real_data: bool = False) -> pd.DataFrame:
         """
         Load stock data for given symbol with caching
         
         Args:
             symbol: Stock symbol (e.g., 'AAPL')
+            use_real_data: Whether to fetch real data or use sample data
             
         Returns:
             DataFrame with OHLCV data and technical indicators
         """
         try:
+            # If real data is requested or it's not a predefined stock, try to fetch real data
+            if use_real_data or not is_predefined_stock(symbol):
+                try:
+                    return real_data_fetcher.fetch_stock_data(symbol, period="2y")
+                except Exception as e:
+                    st.warning(f"Could not fetch real data for {symbol}: {e}")
+                    # Fall back to sample data for predefined stocks
+                    if is_predefined_stock(symbol):
+                        st.info(f"Falling back to sample data for {symbol}")
+                    else:
+                        # For custom stocks, return empty if real data fails
+                        st.error(f"Unable to load data for custom symbol {symbol}")
+                        return _self._get_empty_dataframe()
+            
+            # Use sample data for predefined stocks
             file_path = SAMPLE_STOCKS_DIR / f"{symbol}.csv"
             
             if file_path.exists():
                 df = pd.read_csv(file_path, parse_dates=['date'], index_col='date')
                 return df
             else:
-                # Generate sample data if file doesn't exist
-                return _self._generate_stock_data(symbol)
+                # Generate sample data if file doesn't exist for predefined stocks
+                if is_predefined_stock(symbol):
+                    return _self._generate_stock_data(symbol)
+                else:
+                    st.error(f"No data available for {symbol}")
+                    return _self._get_empty_dataframe()
                 
         except Exception as e:
             st.error(f"Error loading data for {symbol}: {e}")
@@ -599,9 +620,32 @@ class StockDataManager:
         except Exception as e:
             self.logger.error(f"Error saving news data for {symbol}: {e}")
     
-    def get_stock_metrics(self, symbol: str) -> Dict:
+    def get_stock_metrics(self, symbol: str, use_real_data: bool = False) -> Dict:
         """Get current stock metrics and key statistics"""
-        df = self.load_stock_data(symbol)
+        
+        # For real data or custom stocks, try to get real-time quote
+        if use_real_data or not is_predefined_stock(symbol):
+            try:
+                quote = real_data_fetcher.fetch_current_quote(symbol)
+                
+                # Also get historical data for additional metrics
+                df = self.load_stock_data(symbol, use_real_data=True)
+                if not df.empty:
+                    year_data = df.tail(252)  # Last 252 trading days
+                    quote.update({
+                        'avg_volume': df['volume'].tail(20).mean(),
+                        'high_52w': year_data['high'].max(),
+                        'low_52w': year_data['low'].min(),
+                    })
+                
+                return quote
+                
+            except Exception as e:
+                st.warning(f"Could not fetch real-time data for {symbol}: {e}")
+                # Fall back to historical data method
+        
+        # Use historical data method for sample data
+        df = self.load_stock_data(symbol, use_real_data=use_real_data)
         
         if df.empty:
             return {}
@@ -613,6 +657,7 @@ class StockDataManager:
         year_data = df.tail(252)  # Last 252 trading days
         
         metrics = {
+            'symbol': symbol.upper(),
             'current_price': current_data['close'],
             'previous_close': previous_data['close'],
             'price_change': current_data['close'] - previous_data['close'],
@@ -621,7 +666,8 @@ class StockDataManager:
             'avg_volume': df['volume'].tail(20).mean(),
             'high_52w': year_data['high'].max(),
             'low_52w': year_data['low'].min(),
-            'market_cap': STOCK_SYMBOLS[symbol].get('market_cap', 0),
+            'market_cap': STOCK_SYMBOLS.get(symbol, {}).get('market_cap', 0),
+            'last_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         }
         
         return metrics
@@ -635,6 +681,56 @@ class StockDataManager:
             
         days = TIME_PERIODS[period]['days']
         return df.tail(days)
+    
+    def get_company_info(self, symbol: str, use_real_data: bool = False) -> Dict:
+        """Get company information for a stock symbol"""
+        
+        # For real data or custom stocks, fetch from yfinance
+        if use_real_data or not is_predefined_stock(symbol):
+            try:
+                return real_data_fetcher.fetch_company_info(symbol)
+            except Exception as e:
+                st.warning(f"Could not fetch company info for {symbol}: {e}")
+                # Fall back to basic info for custom stocks
+                if not is_predefined_stock(symbol):
+                    return {
+                        'name': symbol.upper(),
+                        'sector': 'Unknown',
+                        'industry': 'Unknown',
+                        'market_cap': 0,
+                        'description': f'Real-time data for {symbol.upper()}',
+                    }
+        
+        # Use predefined data for sample stocks
+        if is_predefined_stock(symbol):
+            return STOCK_SYMBOLS[symbol]
+        
+        # Fallback for unknown symbols
+        return {
+            'name': symbol.upper(),
+            'sector': 'Unknown',
+            'industry': 'Unknown',
+            'market_cap': 0,
+            'description': f'Information for {symbol.upper()}',
+        }
+    
+    def validate_stock_symbol(self, symbol: str) -> Tuple[bool, str]:
+        """Validate a stock symbol"""
+        from config.stock_symbols import validate_ticker_format
+        
+        # First check format
+        if not validate_ticker_format(symbol):
+            return False, "Invalid ticker format. Please use 1-5 letters only."
+        
+        # Check if it's a predefined stock (always valid)
+        if is_predefined_stock(symbol):
+            return True, "Predefined stock symbol"
+        
+        # For custom stocks, validate with yfinance
+        try:
+            return real_data_fetcher.validate_symbol(symbol)
+        except Exception as e:
+            return False, f"Error validating symbol: {str(e)}"
     
     def clear_cache(self):
         """Clear all cached data"""

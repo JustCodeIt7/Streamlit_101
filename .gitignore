@@ -163,3 +163,7 @@ cython_debug/
 memory-bank/
 .roo/
 .roomodes
+.roo copy/
+
+# all folders ending in copy/
+*copy/

@@ -96,3 +96,30 @@ def get_all_symbols() -> list:
 def get_stock_names() -> dict:
     """Get mapping of symbols to company names"""
     return {symbol: info['name'] for symbol, info in STOCK_SYMBOLS.items()}
+
+def is_predefined_stock(symbol: str) -> bool:
+    """Check if symbol is one of the predefined stocks"""
+    return symbol.upper() in STOCK_SYMBOLS
+
+def get_stock_display_name(symbol: str) -> str:
+    """Get display name for a stock symbol"""
+    if is_predefined_stock(symbol):
+        return STOCK_SYMBOLS[symbol.upper()]['name']
+    return f"{symbol.upper()} - Custom Stock"
+
+def validate_ticker_format(ticker: str) -> bool:
+    """Validate ticker format (basic validation)"""
+    if not ticker:
+        return False
+    
+    # Remove whitespace and convert to uppercase
+    ticker = ticker.strip().upper()
+    
+    # Basic format validation (1-5 characters, letters only)
+    if len(ticker) < 1 or len(ticker) > 5:
+        return False
+    
+    if not ticker.isalpha():
+        return False
+        
+    return True
