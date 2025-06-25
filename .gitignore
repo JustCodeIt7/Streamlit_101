@@ -161,3 +161,5 @@ cython_debug/
 .DS_Store
 .roo/mcp.json
 memory-bank/
+.roo/
+.roomodes

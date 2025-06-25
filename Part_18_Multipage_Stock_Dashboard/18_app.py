@@ -161,12 +161,8 @@ def create_sidebar_navigation():
     
     if st.sidebar.button("🗑️ Clear Cache", help="Clear all cached data to free memory"):
         data_manager.clear_cache()
-        st.session_state.cache_info['last_cleared'] = st.timestamp()
     
-    # Performance Info
-    cache_stats = st.cache_data.get_stats()
-    if cache_stats:
-        st.sidebar.caption(f"📊 Cache Entries: {len(cache_stats)}")
+
 
 def display_welcome_message():
     """Display welcome message and dashboard overview"""
