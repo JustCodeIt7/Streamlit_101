@@ -361,7 +361,7 @@ class StockDataManager:
             self.logger.error(f"Error saving financial data for {symbol}: {e}")
     
     @st.cache_data(ttl=CACHE_CONFIG['data_ttl'], max_entries=5)
-    def load_news_data(_self, symbol: str) -> List[Dict]:
+    def load_news_data(_self, symbol: str) -> Dict:
         """
         Load news and sentiment data for given symbol
         
@@ -369,20 +369,35 @@ class StockDataManager:
             symbol: Stock symbol
             
         Returns:
-            List of news articles with sentiment scores
+            Dictionary with comprehensive sentiment analysis data
         """
         try:
             file_path = NEWS_SAMPLES_DIR / f"{symbol}_news.json"
             
             if file_path.exists():
                 with open(file_path, 'r') as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    # Handle legacy format (list) vs new format (dict)
+                    if isinstance(data, list):
+                        # Convert legacy format to new format for backward compatibility
+                        return {
+                            'news_articles': data,
+                            'social_media': [],
+                            'summary_stats': {'news_sentiment': {'overall_avg': 0}},
+                            'market_impact': {}
+                        }
+                    return data
             else:
                 return _self._generate_news_data(symbol)
                 
         except Exception as e:
             st.error(f"Error loading news data for {symbol}: {e}")
-            return []
+            return {
+                'news_articles': [],
+                'social_media': [],
+                'summary_stats': {'news_sentiment': {'overall_avg': 0}},
+                'market_impact': {}
+            }
     
     def _generate_news_data(self, symbol: str) -> List[Dict]:
         """Generate sample news data with sentiment scores"""
@@ -439,7 +454,141 @@ class StockDataManager:
         
         return news_data
     
-    def _save_news_data(self, data: List[Dict], symbol: str):
+    def _calculate_sentiment_stats(self, news_data: List[Dict], social_data: List[Dict]) -> Dict:
+        """Calculate comprehensive sentiment statistics"""
+        
+        # News sentiment stats
+        news_sentiments = [article['sentiment_score'] for article in news_data]
+        
+        # Social media sentiment stats
+        social_sentiments = [post['sentiment_score'] for post in social_data]
+        
+        # Time-based analysis (last 7, 14, 30 days)
+        now = datetime.now()
+        
+        def get_recent_sentiment(data, days, sentiment_key='sentiment_score'):
+            cutoff = now - timedelta(days=days)
+            recent = [item for item in data if datetime.strptime(item['date'], '%Y-%m-%d') >= cutoff]
+            return [item[sentiment_key] for item in recent]
+        
+        stats = {
+            'news_sentiment': {
+                'overall_avg': np.mean(news_sentiments) if news_sentiments else 0,
+                'overall_std': np.std(news_sentiments) if news_sentiments else 0,
+                'positive_ratio': len([s for s in news_sentiments if s > 0.2]) / len(news_sentiments) if news_sentiments else 0,
+                'negative_ratio': len([s for s in news_sentiments if s < -0.2]) / len(news_sentiments) if news_sentiments else 0,
+                'neutral_ratio': len([s for s in news_sentiments if -0.2 <= s <= 0.2]) / len(news_sentiments) if news_sentiments else 0,
+                'last_7_days': np.mean(get_recent_sentiment(news_data, 7)) if get_recent_sentiment(news_data, 7) else 0,
+                'last_14_days': np.mean(get_recent_sentiment(news_data, 14)) if get_recent_sentiment(news_data, 14) else 0,
+                'last_30_days': np.mean(get_recent_sentiment(news_data, 30)) if get_recent_sentiment(news_data, 30) else 0,
+            },
+            'social_sentiment': {
+                'overall_avg': np.mean(social_sentiments) if social_sentiments else 0,
+                'overall_std': np.std(social_sentiments) if social_sentiments else 0,
+                'total_volume': sum([post['engagement'] for post in social_data]),
+                'last_7_days': np.mean(get_recent_sentiment(social_data, 7)) if get_recent_sentiment(social_data, 7) else 0,
+                'last_14_days': np.mean(get_recent_sentiment(social_data, 14)) if get_recent_sentiment(social_data, 14) else 0,
+                'last_30_days': np.mean(get_recent_sentiment(social_data, 30)) if get_recent_sentiment(social_data, 30) else 0,
+            },
+            'trends': {
+                'sentiment_momentum': self._calculate_sentiment_momentum(news_data),
+                'volatility': np.std(news_sentiments + social_sentiments) if (news_sentiments + social_sentiments) else 0,
+                'news_frequency': len([item for item in news_data if datetime.strptime(item['date'], '%Y-%m-%d') >= now - timedelta(days=7)]),
+            }
+        }
+        
+        return stats
+    
+    def _calculate_sentiment_momentum(self, news_data: List[Dict]) -> float:
+        """Calculate sentiment momentum (recent vs historical)"""
+        now = datetime.now()
+        
+        recent_cutoff = now - timedelta(days=7)
+        historical_cutoff = now - timedelta(days=30)
+        
+        recent_sentiment = [
+            item['sentiment_score'] for item in news_data
+            if datetime.strptime(item['date'], '%Y-%m-%d') >= recent_cutoff
+        ]
+        
+        historical_sentiment = [
+            item['sentiment_score'] for item in news_data
+            if recent_cutoff > datetime.strptime(item['date'], '%Y-%m-%d') >= historical_cutoff
+        ]
+        
+        if not recent_sentiment or not historical_sentiment:
+            return 0
+        
+        recent_avg = np.mean(recent_sentiment)
+        historical_avg = np.mean(historical_sentiment)
+        
+        return recent_avg - historical_avg
+    
+    def _generate_market_impact_data(self, symbol: str, news_data: List[Dict]) -> Dict:
+        """Generate market impact correlation data"""
+        
+        # Load stock price data for correlation
+        try:
+            stock_df = self.load_stock_data(symbol)
+            if stock_df.empty:
+                return {}
+            
+            # Calculate daily returns
+            stock_df['daily_return'] = stock_df['close'].pct_change()
+            
+            # Aggregate news sentiment by date
+            sentiment_by_date = {}
+            for article in news_data:
+                date = article['date']
+                if date not in sentiment_by_date:
+                    sentiment_by_date[date] = []
+                sentiment_by_date[date].append(article['sentiment_score'])
+            
+            # Calculate daily average sentiment
+            daily_sentiment = {
+                date: np.mean(scores) for date, scores in sentiment_by_date.items()
+            }
+            
+            # Find correlation between sentiment and price movements
+            correlations = []
+            for date, sentiment in daily_sentiment.items():
+                try:
+                    date_obj = pd.to_datetime(date)
+                    if date_obj in stock_df.index:
+                        price_return = stock_df.loc[date_obj, 'daily_return']
+                        if not pd.isna(price_return):
+                            correlations.append((sentiment, price_return))
+                except:
+                    continue
+            
+            if len(correlations) > 10:
+                sentiments, returns = zip(*correlations)
+                correlation = np.corrcoef(sentiments, returns)[0, 1] if len(set(sentiments)) > 1 else 0
+            else:
+                correlation = 0
+            
+            # Identify major sentiment events
+            major_events = []
+            for article in news_data[:20]:  # Top 20 recent articles
+                if abs(article['sentiment_score']) > 0.7:
+                    major_events.append({
+                        'date': article['date'],
+                        'headline': article['headline'],
+                        'sentiment': article['sentiment_score'],
+                        'impact_type': 'positive' if article['sentiment_score'] > 0 else 'negative'
+                    })
+            
+            return {
+                'sentiment_price_correlation': round(correlation, 3),
+                'major_sentiment_events': major_events,
+                'prediction_accuracy': min(abs(correlation) * 100, 85),  # Simulated accuracy
+                'market_sensitivity': abs(correlation) * np.random.uniform(0.8, 1.2)
+            }
+            
+        except Exception as e:
+            return {'error': f"Could not calculate market impact: {str(e)}"}
+    
+    def _save_news_data(self, data: Dict, symbol: str):
         """Save news data to JSON file"""
         try:
             NEWS_SAMPLES_DIR.mkdir(parents=True, exist_ok=True)
